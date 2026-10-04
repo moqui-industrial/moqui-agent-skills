@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Example: products described by features, organized in categories, assembled by a bill of materials,
+     and instantiated as assets (bulk stock, a serialized unit, a fixed asset). Fictional company ACME. -->
+<entity-facade-xml type="seed-initial">
+
+    <!-- 1. vocabulary the catalog needs and the framework does not have: feature types and a unit -->
+    <moqui.basic.Enumeration enumId="PftRatedVoltage" enumTypeId="ProductFeatureType" description="Rated Voltage"/>
+    <moqui.basic.Enumeration enumId="PftRatedPower" enumTypeId="ProductFeatureType" description="Rated Power"/>
+    <moqui.basic.Enumeration enumId="PftDigitalInputs" enumTypeId="ProductFeatureType" description="Digital Inputs"/>
+    <moqui.basic.Enumeration enumId="PftCertification" enumTypeId="ProductFeatureType" description="Certification"/>
+    <moqui.basic.Uom uomId="OTH_V" uomTypeEnumId="UT_OTHER_MEASURE" abbreviation="V" description="Volt - Electric potential"/>
+
+    <!-- 2. features: quantitative (numberSpecified + numberUomId) and qualitative (presence of the feature) -->
+    <mantle.product.feature.ProductFeature productFeatureId="ACME_V400" productFeatureTypeEnumId="PftRatedVoltage"
+            description="400 V" numberSpecified="400" numberUomId="OTH_V"/>
+    <mantle.product.feature.ProductFeature productFeatureId="ACME_KW7_5" productFeatureTypeEnumId="PftRatedPower"
+            description="7.5 kW" numberSpecified="7.5" numberUomId="PW_kw"/>
+    <mantle.product.feature.ProductFeature productFeatureId="ACME_DI16" productFeatureTypeEnumId="PftDigitalInputs"
+            description="16 digital inputs" numberSpecified="16"/>
+    <mantle.product.feature.ProductFeature productFeatureId="ACME_CE" productFeatureTypeEnumId="PftCertification"
+            description="CE marked" abbrev="CE"/>
+
+    <!-- 3. feature groups and the categories they describe -->
+    <mantle.product.feature.ProductFeatureGroup productFeatureGroupId="ACME_MOTOR_DATA" description="Motor nameplate data">
+        <mantle.product.feature.ProductFeatureGroupAppl productFeatureId="ACME_V400" fromDate="2026-01-01 00:00:00" sequenceNum="1"/>
+        <mantle.product.feature.ProductFeatureGroupAppl productFeatureId="ACME_KW7_5" fromDate="2026-01-01 00:00:00" sequenceNum="2"/>
+        <mantle.product.feature.ProductFeatureGroupAppl productFeatureId="ACME_CE" fromDate="2026-01-01 00:00:00" sequenceNum="3"/>
+    </mantle.product.feature.ProductFeatureGroup>
+
+    <mantle.product.category.ProductCategory productCategoryId="ACME_COMPONENTS" productCategoryTypeEnumId="PctMaterials"
+            categoryName="Components"/>
+    <mantle.product.category.ProductCategory productCategoryId="ACME_MOTORS" productCategoryTypeEnumId="PctMaterials"
+            categoryName="Electric motors">
+        <mantle.product.category.ProductCategoryRollup parentProductCategoryId="ACME_COMPONENTS" fromDate="2026-01-01 00:00:00"/>
+        <mantle.product.feature.ProductCategoryFeatGrpAppl productFeatureGroupId="ACME_MOTOR_DATA"
+                applTypeEnumId="PfatStandard" fromDate="2026-01-01 00:00:00"/>
+    </mantle.product.category.ProductCategory>
+
+    <!-- 4. products: a component with its features, and a finished product with its manufacturing BOM -->
+    <mantle.product.Product productId="ACME_MOT_7K5" pseudoId="MOT-7K5" productTypeEnumId="PtAsset"
+            assetTypeEnumId="AstTpInventory" assetClassEnumId="AsClsInventoryRaw" productName="Motor 7.5 kW 400 V">
+        <mantle.product.feature.ProductFeatureAppl productFeatureId="ACME_V400" applTypeEnumId="PfatStandard" fromDate="2026-01-01 00:00:00"/>
+        <mantle.product.feature.ProductFeatureAppl productFeatureId="ACME_KW7_5" applTypeEnumId="PfatStandard" fromDate="2026-01-01 00:00:00"/>
+        <mantle.product.feature.ProductFeatureAppl productFeatureId="ACME_CE" applTypeEnumId="PfatStandard" fromDate="2026-01-01 00:00:00"/>
+        <categories productCategoryId="ACME_MOTORS" fromDate="2026-01-01 00:00:00"/>
+    </mantle.product.Product>
+    <mantle.product.Product productId="ACME_PLC_DI16" pseudoId="PLC-DI16" productTypeEnumId="PtAsset"
+            assetTypeEnumId="AstTpInventory" assetClassEnumId="AsClsInventoryRaw" productName="Controller 16 DI">
+        <mantle.product.feature.ProductFeatureAppl productFeatureId="ACME_DI16" applTypeEnumId="PfatStandard" fromDate="2026-01-01 00:00:00"/>
+        <mantle.product.feature.ProductFeatureAppl productFeatureId="ACME_CE" applTypeEnumId="PfatStandard" fromDate="2026-01-01 00:00:00"/>
+    </mantle.product.Product>
+    <mantle.product.Product productId="ACME_CHILLER_10" pseudoId="CH-10" productTypeEnumId="PtAsset"
+            assetTypeEnumId="AstTpInventory" assetClassEnumId="AsClsInventoryFin" productName="Chiller unit 10 kW">
+        <mantle.product.ProductAssoc toProductId="ACME_MOT_7K5" productAssocTypeEnumId="PatMfgBom"
+                fromDate="2026-01-01 00:00:00" quantity="2" sequenceNum="10"/>
+        <mantle.product.ProductAssoc toProductId="ACME_PLC_DI16" productAssocTypeEnumId="PatMfgBom"
+                fromDate="2026-01-01 00:00:00" quantity="1" sequenceNum="20"/>
+    </mantle.product.Product>
+
+    <!-- 5. assets, instances of products: bulk stock (hasQuantity Y, quantity from AssetDetail), a serialized unit
+         (hasQuantity N, one unit, serialNumber), and the same kind of unit kept as a fixed asset -->
+    <mantle.product.asset.Asset assetId="ACME_MOT_STOCK1" productId="ACME_MOT_7K5" assetTypeEnumId="AstTpInventory"
+            classEnumId="AsClsInventoryRaw" statusId="AstAvailable" hasQuantity="Y" facilityId="ACME_WH" locationSeqId="01010101"
+            receivedDate="2026-01-01 00:00:00">
+        <mantle.product.asset.AssetDetail assetDetailId="ACME_MOT_STOCK1_0" effectiveDate="2026-01-01 00:00:00"
+                quantityOnHandDiff="20" availableToPromiseDiff="20"/>
+    </mantle.product.asset.Asset>
+    <mantle.product.asset.Asset assetId="ACME_CH10_SN0001" productId="ACME_CHILLER_10" assetTypeEnumId="AstTpInventory"
+            classEnumId="AsClsInventoryFin" statusId="AstAvailable" hasQuantity="N" serialNumber="CH10-0001"
+            facilityId="ACME_WH" locationSeqId="01010102">
+        <mantle.product.asset.AssetDetail assetDetailId="ACME_CH10_SN0001_0" effectiveDate="2026-01-01 00:00:00"
+                quantityOnHandDiff="1" availableToPromiseDiff="1"/>
+    </mantle.product.asset.Asset>
+    <mantle.product.asset.Asset assetId="ACME_CH10_TESTRIG" productId="ACME_CHILLER_10" assetTypeEnumId="AstTpEquipment"
+            classEnumId="AsClsMfgEquip" statusId="AstInUse" hasQuantity="N" serialNumber="CH10-0000"
+            acquiredDate="2026-01-01 00:00:00" facilityId="ACME_WH"/>
+</entity-facade-xml>

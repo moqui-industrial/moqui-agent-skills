@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Example of a minimal company setup in the same order Mantle uses in ZbaOrganizationDemoData and
+     ZcaProductDemoData. Fictional company ACME S.r.l. in Parma. Requires seed and install data loaded
+     (enumerations, Geo, GL account templates of the DefaultSettings organization). -->
+<entity-facade-xml type="seed-initial">
+
+    <!-- organizations: main company plus a division that rolls up to it -->
+    <mantle.party.Party partyId="ACME_CORP" pseudoId="ACME" partyTypeEnumId="PtyOrganization" ownerPartyId="ACME_CORP">
+        <organization organizationName="ACME S.r.l."/>
+        <roles roleTypeId="OrgInternal"/>
+        <!-- contacts: the ContactMech is nested so that its PartyContactMech receives both partyId and contactMechId -->
+        <mantle.party.contact.ContactMech contactMechId="ACME_CORP_PA" contactMechTypeEnumId="CmtPostalAddress">
+            <mantle.party.contact.PostalAddress toName="ACME S.r.l." address1="Via Roma 1" city="Parma"
+                    stateProvinceGeoId="ITA_PR" countryGeoId="ITA" postalCode="43121"/>
+            <mantle.party.contact.PartyContactMech contactMechPurposeId="PostalPrimary" fromDate="2026-01-01 00:00:00"/>
+            <mantle.party.contact.PartyContactMech contactMechPurposeId="PostalBilling" fromDate="2026-01-01 00:00:00"/>
+        </mantle.party.contact.ContactMech>
+    </mantle.party.Party>
+
+    <mantle.party.Party partyId="ACME_PROD" pseudoId="ACMEPR" partyTypeEnumId="PtyOrganization" ownerPartyId="ACME_PROD">
+        <organization organizationName="ACME Production"/>
+        <roles roleTypeId="OrgInternal"/>
+    </mantle.party.Party>
+    <mantle.party.PartyRelationship partyRelationshipId="ACME_PROD" relationshipTypeEnumId="PrtOrgRollup"
+            fromPartyId="ACME_PROD" fromRoleTypeId="OrgInternal" toPartyId="ACME_CORP" toRoleTypeId="OrgInternal"
+            fromDate="2026-01-01 00:00:00"/>
+
+    <!-- accounting: copy configuration and GL accounts from the DefaultSettings template, create fiscal periods -->
+    <mantle.ledger.LedgerServices.initPartyAccountingConfiguration sourcePartyId="DefaultSettings"
+            organizationPartyId="ACME_CORP" baseCurrencyUomId="EUR" startYear="2027"/>
+
+    <!-- people: an employee with a user account -->
+    <mantle.party.Party partyId="ACME_MROSSI" partyTypeEnumId="PtyPerson" ownerPartyId="ACME_CORP">
+        <person firstName="Mario" lastName="Rossi"/>
+        <roles roleTypeId="Employee"/>
+    </mantle.party.Party>
+    <mantle.party.PartyRelationship partyRelationshipId="ACME_MROSSI_EMP" relationshipTypeEnumId="PrtEmployee"
+            fromPartyId="ACME_MROSSI" fromRoleTypeId="Employee" toPartyId="ACME_CORP" toRoleTypeId="OrgInternal"
+            fromDate="2026-01-01 00:00:00"/>
+    <moqui.security.UserAccount userId="ACME_MROSSI" partyId="ACME_MROSSI" username="mario.rossi"
+            userFullName="Mario Rossi" emailAddress="mario.rossi@example.com"/>
+
+    <!-- facilities: a warehouse with two pick locations -->
+    <mantle.facility.Facility facilityId="ACME_WH" pseudoId="ACMEWH" facilityTypeEnumId="FcTpWarehouse"
+            ownerPartyId="ACME_CORP" facilityName="ACME Parma Warehouse">
+        <locations locationSeqId="01010101" locationTypeEnumId="FltPick" areaId="01" aisleId="01" sectionId="01" levelId="01"/>
+        <locations locationSeqId="01010102" locationTypeEnumId="FltPick" areaId="01" aisleId="01" sectionId="01" levelId="02"/>
+    </mantle.facility.Facility>
+
+    <!-- products: one inventory product with a list price -->
+    <mantle.product.Product productId="ACME_P001" pseudoId="P001" productTypeEnumId="PtAsset"
+            assetTypeEnumId="AstTpInventory" productName="Chiller unit 10 kW" ownerPartyId="ACME_CORP">
+        <prices productPriceId="ACME_P001_L" pricePurposeEnumId="PppPurchase" priceTypeEnumId="PptList"
+                fromDate="2026-01-01 00:00:00" minQuantity="1" price="12500.00" priceUomId="EUR"/>
+    </mantle.product.Product>
+</entity-facade-xml>

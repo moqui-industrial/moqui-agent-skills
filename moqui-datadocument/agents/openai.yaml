@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui DataDocument"
+  short_description: "Denormalized documents and feeds for search and BI"
+  default_prompt: "Use $moqui-datadocument to define the Moqui DataDocuments and DataFeed for this analysis."
+
+policy:
+  allow_implicit_invocation: true

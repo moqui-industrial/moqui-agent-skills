@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Template: stateful exchange with an external system through SystemMessage.
+     Outgoing: order confirmations sent to a partner by REST. Incoming: shipment notices consumed by a service. -->
+<entity-facade-xml type="seed-initial">
+    <moqui.service.message.SystemMessageRemote systemMessageRemoteId="AcmePartnerApi" description="ACME partner API"
+            sendUrl="https://partner.example.com/api/messages"/>
+
+    <!-- outgoing: queued by our service, sent by the framework REST sender, retried by the send job -->
+    <moqui.service.message.SystemMessageType systemMessageTypeId="AcmeOrderConfirmOut" description="Order confirmation to partner"
+            contentType="application/json" sendServiceName="org.moqui.impl.SystemMessageServices.send#SystemMessageRest"/>
+
+    <!-- incoming: saved by receive#IncomingSystemMessage, then consumed asynchronously by our service -->
+    <moqui.service.message.SystemMessageType systemMessageTypeId="AcmeShipNoticeIn" description="Shipment notice from partner"
+            contentType="application/json" consumeServiceName="acme.integration.PartnerServices.consume#ShipNotice"/>
+
+    <!-- retry jobs: shipped paused by the framework, enable them where messages must not be lost -->
+    <moqui.service.job.ServiceJob jobName="send_AllProducedSystemMessages_frequent" paused="N"/>
+    <moqui.service.job.ServiceJob jobName="consume_AllReceivedSystemMessages_frequent" paused="N"/>
+</entity-facade-xml>

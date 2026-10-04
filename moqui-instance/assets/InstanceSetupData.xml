@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Example: provisioning one Moqui application instance per customer on a Docker host with a PostgreSQL server.
+     Passwords here are placeholders: load real ones from secrets, never from a data file in version control. -->
+<entity-facade-xml type="seed-initial">
+    <!-- where containers run: Docker Engine API over TLS on the host network -->
+    <moqui.server.instance.InstanceHost instanceHostId="ACME_DOCKER1" hostTypeId="docker"
+            hostProtocol="https" hostAddress="docker1.internal" adminPort="2376"/>
+
+    <!-- where databases are created: one database and one user per instance -->
+    <moqui.server.instance.DatabaseHost databaseHostId="ACME_PG1" databaseTypeId="postgres"
+            hostAddress="pg1.internal" hostPort="5432" instanceAddress="pg1.internal"
+            adminUser="postgres" adminPassword="CHANGE_ME_FROM_SECRET"/>
+
+    <!-- what runs: the default Moqui image type gives VIRTUAL_HOST, datasource and link defaults -->
+    <moqui.server.instance.InstanceImage instanceImageId="ACME_MOQUI_3" imageTypeId="moqui" hostTypeId="docker"
+            imageName="registry.internal/acme/moqui:3.1"/>
+
+    <!-- one tenant instance -->
+    <moqui.server.instance.AppInstance appInstanceId="HRM_MONITOR" instanceImageId="ACME_MOQUI_3"
+            instanceHostId="ACME_DOCKER1" databaseHostId="ACME_PG1" hostName="hormel.monitor.example.com"
+            instanceName="hrm_monitor">
+        <envs envName="instance_purpose" envValue="production"/>
+    </moqui.server.instance.AppInstance>
+</entity-facade-xml>

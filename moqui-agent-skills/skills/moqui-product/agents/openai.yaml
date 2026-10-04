@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui Product"
+  short_description: "Products, BOMs, features, categories, assets and devices"
+  default_prompt: "Use $moqui-product to model these products, features, BOMs or assets in Moqui."
+
+policy:
+  allow_implicit_invocation: true

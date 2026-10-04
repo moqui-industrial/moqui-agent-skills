@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui DbForm"
+  short_description: "Forms and surveys defined as data"
+  default_prompt: "Use $moqui-dbform to define this form or questionnaire as Moqui DbForm data."
+
+policy:
+  allow_implicit_invocation: true

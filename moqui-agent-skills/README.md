@@ -1,0 +1,32 @@
+# Moqui agent skills
+
+Skills that teach a coding agent (Codex, Claude Code or similar) to read, write and validate Moqui/Mantle artifacts from the real sources. Each folder under `skills/` is one skill: `SKILL.md`, generated `references/`, `scripts/` (generators and validators), `assets/` (validated examples) and `agents/openai.yaml` for Codex.
+
+| Skill | Purpose |
+| --- | --- |
+| `moqui-erp-setup` | Orchestrator: company setup sessions, step order, and the dispatch guide (which mechanism for which need) |
+| `moqui-model` | The data model: entities, views, masters, structures, enums, statuses, roles, item types and GL mapping, work efforts, requests and requirements, party roles, agents as parties, DDD reading |
+| `moqui-actions` | xml-actions language, runtime contract, SECA/EECA index, profile for generated code, artifact and XSD validators |
+| `moqui-data` | entity-facade-xml data files, nesting, services in data, data as a program, data catalog, data validator |
+| `moqui-product` | Products, services as products, BOMs, features, categories, assets, devices, as-built structure |
+| `moqui-agreement` | Contracts, framework agreements over a job order, terms, agreement prices, service thresholds |
+| `moqui-datadocument` | DataDocuments and DataFeeds for search, BI and change notifications; catalog of existing documents |
+| `moqui-dbform` | Forms and surveys as data |
+| `moqui-systemmessage` | Stateful integration with external systems |
+| `moqui-instance` | Application instance provisioning and lifecycle, SaaS per subscriber, scaling on top |
+
+## Install
+
+Copy the folders under `skills/` into the skills directory your agent reads (moqui-plc keeps its skills under `agent-skills/skills/`). The scripts need only Python 3; `ValidateXsd.java` needs a JDK (run with `java ValidateXsd.java`).
+
+## Keep the references current
+
+The `references/` files are generated from the component sources. After changing entities, seed data, services or ECAs, or adding a component, run:
+
+```sh
+./rebuild-references.sh /path/to/moqui-framework
+```
+
+## Status
+
+Built from moqui-framework (llm-client branch), moqui-runtime, mantle-udm, mantle-usl, SimpleScreens, MarbleERP, PopCommerce, HiveMind, moqui-sftp, moqui-math and moqui-device as of 2026-10-04. Validators are calibrated on all service and data files of those components; every example in `assets/` and `references/` passes them. Nothing has yet been loaded or executed in a running Moqui instance: that is the next test. Where the private moqui-industrial versions differ (for example `Device.assetId`), the skills say so.

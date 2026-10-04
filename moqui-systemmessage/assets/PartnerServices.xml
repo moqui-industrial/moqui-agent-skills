@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Template: producing and consuming SystemMessages. Place under service/acme/integration/PartnerServices.xml -->
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-3.xsd">
+
+    <!-- produce: build the payload from the business record and queue it in the same transaction -->
+    <service verb="queue" noun="OrderConfirmation">
+        <in-parameters><parameter name="orderId" required="true"/></in-parameters>
+        <out-parameters><parameter name="systemMessageId"/></out-parameters>
+        <actions>
+            <entity-find-one entity-name="mantle.order.OrderHeader" value-field="orderHeader"/>
+            <if condition="orderHeader == null"><return error="true" message="Order ${orderId} not found"/></if>
+            <set field="payload" from="groovy.json.JsonOutput.toJson([orderId:orderHeader.orderId,
+                    statusId:orderHeader.statusId, grandTotal:orderHeader.grandTotal])"/>
+            <service-call name="org.moqui.impl.SystemMessageServices.queue#SystemMessage" out-map="context"
+                    in-map="[systemMessageTypeId:'AcmeOrderConfirmOut', systemMessageRemoteId:'AcmePartnerApi',
+                             messageText:payload, orderId:orderId]"/>
+        </actions>
+    </service>
+
+    <!-- consume: called by the framework for each received message of type AcmeShipNoticeIn -->
+    <service verb="consume" noun="ShipNotice">
+        <implements service="org.moqui.impl.SystemMessageServices.consume#SystemMessage"/>
+        <actions>
+            <entity-find-one entity-name="moqui.service.message.SystemMessage" value-field="systemMessage"/>
+            <set field="notice" from="new groovy.json.JsonSlurper().parseText(systemMessage.messageText)"/>
+            <if condition="!notice.shipmentId"><return error="true" message="Ship notice without shipmentId"/></if>
+            <entity-find-one entity-name="mantle.shipment.Shipment" value-field="shipment">
+                <field-map field-name="shipmentId" from="notice.shipmentId"/></entity-find-one>
+            <if condition="shipment == null"><return error="true" message="Unknown shipment ${notice.shipmentId}"/></if>
+            <!-- apply the change through the owning service so status checks and SECAs run -->
+            <service-call name="mantle.shipment.ShipmentServices.ship#Shipment" in-map="[shipmentId:shipment.shipmentId]"/>
+        </actions>
+    </service>
+</services>

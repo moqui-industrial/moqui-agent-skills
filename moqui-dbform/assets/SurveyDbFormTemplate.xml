@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Template: a survey defined as data. Replace ids and texts; keep the structure. -->
+<entity-facade-xml type="seed-initial">
+    <moqui.screen.form.DbForm formId="AcmeSupplierQual" purposeEnumId="DbfpSurvey"
+            description="Supplier qualification questionnaire"/>
+
+    <moqui.screen.form.DbFormField formId="AcmeSupplierQual" fieldName="companyName" title="Company name"
+            layoutSequenceNum="1" fieldTypeEnumId="DBFFT_text-line" isRequired="Y">
+        <moqui.screen.form.DbFormFieldAttribute attributeName="size" value="40"/>
+    </moqui.screen.form.DbFormField>
+
+    <moqui.screen.form.DbFormField formId="AcmeSupplierQual" fieldName="certified" title="ISO 9001 certified?"
+            layoutSequenceNum="2" fieldTypeEnumId="DBFFT_radio" isRequired="Y">
+        <moqui.screen.form.DbFormFieldOption sequenceNum="1" keyValue="Y" text="Yes"/>
+        <moqui.screen.form.DbFormFieldOption sequenceNum="2" keyValue="N" text="No"/>
+    </moqui.screen.form.DbFormField>
+
+    <!-- options read from an entity: here the countries from moqui.basic.Geo -->
+    <moqui.screen.form.DbFormField formId="AcmeSupplierQual" fieldName="countryGeoId" title="Country"
+            layoutSequenceNum="3" fieldTypeEnumId="DBFFT_drop-down">
+        <moqui.screen.form.DbFormFieldEntOpts sequenceNum="1" entityName="moqui.basic.Geo" text="${geoName}">
+            <moqui.screen.form.DbFormFieldEntOptsCond entityFieldName="geoTypeEnumId" value="GEOT_COUNTRY"/>
+            <moqui.screen.form.DbFormFieldEntOptsOrder orderSequenceNum="1" entityFieldName="geoName"/>
+        </moqui.screen.form.DbFormFieldEntOpts>
+    </moqui.screen.form.DbFormField>
+
+    <moqui.screen.form.DbFormField formId="AcmeSupplierQual" fieldName="notes" title="Notes"
+            layoutSequenceNum="4" fieldTypeEnumId="DBFFT_text-area">
+        <moqui.screen.form.DbFormFieldAttribute attributeName="cols" value="60"/>
+        <moqui.screen.form.DbFormFieldAttribute attributeName="rows" value="4"/>
+    </moqui.screen.form.DbFormField>
+
+    <moqui.screen.form.DbFormField formId="AcmeSupplierQual" fieldName="submitButton" title="Submit"
+            layoutSequenceNum="99" fieldTypeEnumId="DBFFT_submit"/>
+
+    <!-- who sees it: ALL_USERS or a specific UserGroup -->
+    <moqui.screen.form.DbFormUserGroup formId="AcmeSupplierQual" userGroupId="ALL_USERS"/>
+</entity-facade-xml>

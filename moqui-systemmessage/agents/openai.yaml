@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui SystemMessage"
+  short_description: "Reliable stateful integration with external systems"
+  default_prompt: "Use $moqui-systemmessage to design the SystemMessage types, remotes and services for this integration."
+
+policy:
+  allow_implicit_invocation: true

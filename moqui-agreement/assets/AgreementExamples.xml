@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Examples: (1) a framework construction contract over a job order (commessa) that governs every order issued on it;
+     (2) a SaaS agreement with quantitative service thresholds. Fictional parties ACME_CORP (internal) and CUST_HORMEL. -->
+<entity-facade-xml type="seed-initial">
+    <!-- Mantle defines the Agreement status type but no status values: define the life cycle you need -->
+    <moqui.basic.StatusItem statusId="AgrDraft" statusTypeId="Agreement" sequenceNum="1" description="Draft"/>
+    <moqui.basic.StatusItem statusId="AgrActive" statusTypeId="Agreement" sequenceNum="2" description="Active"/>
+    <moqui.basic.StatusItem statusId="AgrClosed" statusTypeId="Agreement" sequenceNum="3" description="Closed"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="AgrDraft" toStatusId="AgrActive" transitionName="Activate"/>
+    <moqui.basic.StatusFlowTransition statusFlowId="Default" statusId="AgrActive" toStatusId="AgrClosed" transitionName="Close"/>
+
+    <mantle.party.Party partyId="CUST_HORMEL" partyTypeEnumId="PtyOrganization">
+        <organization organizationName="Hormel Food Corporation"/>
+        <roles roleTypeId="Customer"/>
+    </mantle.party.Party>
+
+    <!-- payment term reused by the agreement: net 60 days -->
+    <mantle.account.invoice.SettlementTerm settlementTermId="ACME_NET60" termTypeEnumId="TtFinPaymentDays"
+            description="Net 60 days" termValue="60"/>
+
+    <!-- (1) framework contract -->
+    <mantle.party.agreement.Agreement agreementId="ACME_HRM_2027" agreementTypeEnumId="AgrSales" statusId="AgrActive"
+            organizationPartyId="ACME_CORP" organizationRoleTypeId="OrgInternal" otherPartyId="CUST_HORMEL" otherRoleTypeId="Customer"
+            agreementDate="2026-10-01 00:00:00" fromDate="2026-11-01 00:00:00" thruDate="2027-12-31 23:59:59"
+            currencyUomId="EUR" description="Framework contract for job order Hormel 2027">
+        <mantle.party.agreement.AgreementItem agreementItemSeqId="01" agreementItemTypeEnumId="AitSection"
+                itemText="Scope: supply, installation and commissioning of the refrigeration plant."/>
+        <mantle.party.agreement.AgreementItem agreementItemSeqId="02" agreementItemTypeEnumId="AitPricing"
+                productId="ACME_CHILLER_10" quantity="4" itemText="Chiller units at the agreed unit price."/>
+        <mantle.party.agreement.AgreementTerm agreementTermId="ACME_HRM_2027_PAY" settlementTermId="ACME_NET60"
+                termTypeEnumId="TtFinPaymentDays" termNumber="60"/>
+        <mantle.party.agreement.AgreementTerm agreementTermId="ACME_HRM_2027_LATE" termTypeEnumId="TtFinLateFee" termNumber="2"
+                termText="Late fee 2% per month on overdue amounts."/>
+        <mantle.party.agreement.AgreementTerm agreementTermId="ACME_HRM_2027_EXW" agreementItemSeqId="02" termTypeEnumId="TtEXW"/>
+    </mantle.party.agreement.Agreement>
+    <!-- price valid only under this agreement item -->
+    <mantle.product.ProductPrice productPriceId="ACME_CH10_HRM" productId="ACME_CHILLER_10" agreementId="ACME_HRM_2027"
+            agreementItemSeqId="02" pricePurposeEnumId="PppPurchase" priceTypeEnumId="PptCurrent" fromDate="2026-11-01 00:00:00"
+            minQuantity="1" price="11800.00" priceUomId="EUR"/>
+
+    <!-- (2) SaaS agreement with thresholds to compare against measured usage -->
+    <mantle.party.agreement.Agreement agreementId="ACME_SAAS_HRM" agreementTypeEnumId="AgrProduct" statusId="AgrActive"
+            organizationPartyId="ACME_CORP" organizationRoleTypeId="OrgInternal" otherPartyId="CUST_HORMEL" otherRoleTypeId="Customer"
+            fromDate="2027-01-01 00:00:00" description="Monitoring SaaS for the Hormel plant">
+        <mantle.party.agreement.AgreementTerm agreementTermId="ACME_SAAS_HRM_UP" termTypeEnumId="TtThreshold" termNumber="99.5"
+                termText="Monthly availability at least 99.5%."/>
+        <mantle.party.agreement.AgreementTerm agreementTermId="ACME_SAAS_HRM_DEV" termTypeEnumId="TtThreshold" termNumber="50"
+                termText="Up to 50 connected devices included."/>
+    </mantle.party.agreement.Agreement>
+</entity-facade-xml>
