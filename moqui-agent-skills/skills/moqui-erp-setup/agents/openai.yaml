@@ -1,7 +1,0 @@
-interface:
-  display_name: "Moqui ERP Setup"
-  short_description: "Orchestrate a company setup in Moqui/Mantle"
-  default_prompt: "Use $moqui-erp-setup to start or resume the company setup session and coordinate the Moqui specialist skills."
-
-policy:
-  allow_implicit_invocation: true

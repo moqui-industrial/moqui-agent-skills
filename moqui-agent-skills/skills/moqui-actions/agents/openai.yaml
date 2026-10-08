@@ -1,7 +1,0 @@
-interface:
-  display_name: "Moqui Actions"
-  short_description: "Write and check xml-actions services"
-  default_prompt: "Use $moqui-actions to write and validate the Moqui service for this request."
-
-policy:
-  allow_implicit_invocation: true

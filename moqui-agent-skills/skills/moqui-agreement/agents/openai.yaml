@@ -1,7 +1,0 @@
-interface:
-  display_name: "Moqui Agreement"
-  short_description: "Contracts, terms, agreement prices and SLAs"
-  default_prompt: "Use $moqui-agreement to model this contract and its terms in Moqui."
-
-policy:
-  allow_implicit_invocation: true

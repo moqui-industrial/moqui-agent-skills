@@ -1,7 +1,0 @@
-interface:
-  display_name: "Moqui Instance"
-  short_description: "Provision and manage application instances"
-  default_prompt: "Use $moqui-instance to provision or manage this application instance."
-
-policy:
-  allow_implicit_invocation: true

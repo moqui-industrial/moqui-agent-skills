@@ -1,7 +1,0 @@
-interface:
-  display_name: "Moqui Data"
-  short_description: "Write and validate Moqui seed and setup data"
-  default_prompt: "Use $moqui-data to write and validate the Moqui data file for this request."
-
-policy:
-  allow_implicit_invocation: true
