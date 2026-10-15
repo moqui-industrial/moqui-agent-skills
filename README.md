@@ -7,6 +7,7 @@ Skills that teach a coding agent (Codex, Claude Code or similar) to read, write 
 | `moqui-erp-setup` | Orchestrator: company setup sessions, step order, and the dispatch guide (which mechanism for which need) |
 | `moqui-model` | The data model: entities, views, masters, structures, enums, statuses, roles, item types and GL mapping, work efforts, requests and requirements, party roles, agents as parties, DDD reading |
 | `moqui-actions` | xml-actions language, runtime contract, SECA/EECA index, profile for generated code, artifact and XSD validators |
+| `moqui-screen-xml` | XML screens, transitions, forms, reports and DbForm screens, checked against the XSDs and the SimpleScreens conventions |
 | `moqui-data` | entity-facade-xml data files, nesting, services in data, data as a program, data catalog, data validator |
 | `moqui-product` | Products, services as products, BOMs, features, categories, assets, devices, as-built structure |
 | `moqui-agreement` | Contracts, framework agreements over a job order, terms, agreement prices, service thresholds |
