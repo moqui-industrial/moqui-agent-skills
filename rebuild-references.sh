@@ -9,7 +9,7 @@ RT="$FW/runtime"; C="$RT/component"
 COMPS="$FW/framework $RT/base-component/tools $RT/base-component/webroot $C/mantle-udm $C/mantle-usl \
   $C/SimpleScreens $C/MarbleERP $C/PopCommerce $C/HiveMind $C/moqui-sftp $C/moqui-math $C/moqui-device"
 EXISTING=""; for c in $COMPS; do [ -d "$c" ] && EXISTING="$EXISTING $c"; done
-S=skills
+S=.agents/skills
 python3 $S/moqui-model/scripts/build_model_index.py $S/moqui-model/references $EXISTING
 python3 $S/moqui-actions/scripts/build_eca_index.py $S/moqui-actions/references/ecas.md $EXISTING
 python3 $S/moqui-actions/scripts/build_actions_reference.py "$FW/framework/xsd/xml-actions-3.xsd" \

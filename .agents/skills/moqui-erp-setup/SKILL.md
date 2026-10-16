@@ -36,10 +36,10 @@ The setup is a set of data files, reviewed and loaded in order. They are the dig
 
 ## Session
 
-Every setup lives in a session directory so it can be resumed:
+Every setup lives in a session directory so it can be resumed. Run from the root of the project you are working in; sessions go in its `codegen/sessions/`, apart from the skills:
 
 ```bash
-python3 scripts/init_session.py output/sessions acme
+python3 .agents/skills/moqui-erp-setup/scripts/init_session.py codegen/sessions acme
 ```
 
 This creates `session.json` (step status), `survey-answers/`, `seed-data/`, `notes/` and `exports/`, or prints the status of an existing session. Update the step status in `session.json` as you go, and write in `notes/decisions.md` every choice that is not obvious from the data, with its reason.

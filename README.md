@@ -1,6 +1,6 @@
 # Moqui agent skills
 
-Skills that teach a coding agent (Codex, Claude Code or similar) to read, write and validate Moqui/Mantle artifacts from the real sources. Each folder under `skills/` is one skill: `SKILL.md`, generated `references/`, `scripts/` (generators and validators), `assets/` (validated examples) and `agents/openai.yaml` for Codex.
+Skills that teach a coding agent (Codex, Claude Code or similar) to read, write and validate Moqui/Mantle artifacts from the real sources. Each folder under `.agents/skills/` is one skill (the `.agents/skills/<name>/SKILL.md` layout used by `moqui/mr-moqui` and `moqui/moqui-plc`): `SKILL.md`, generated `references/`, `scripts/` (generators and validators), `assets/` (validated examples) and `agents/openai.yaml` for Codex.
 
 | Skill | Purpose |
 | --- | --- |
@@ -18,7 +18,11 @@ Skills that teach a coding agent (Codex, Claude Code or similar) to read, write 
 
 ## Install
 
-Copy the folders under `skills/` into the skills directory your agent reads (moqui-plc keeps its skills under `agent-skills/skills/`). The scripts need only Python 3; `ValidateXsd.java` needs a JDK (run with `java ValidateXsd.java`).
+Copy the folders under `.agents/skills/` into the skills directory your agent reads (moqui-plc keeps its skills under `.agents/skills/`). The scripts need only Python 3; `ValidateXsd.java` needs a JDK (run with `java ValidateXsd.java`).
+
+## Target framework
+
+These skills generate seed data and artifacts for the current Java/Groovy `moqui-framework`. Support for `moqui/mr-moqui` (Rust, JavaScript scripts) is future work and will be added as separate skills or an explicit target option, not by changing the current output.
 
 ## Keep the references current
 
