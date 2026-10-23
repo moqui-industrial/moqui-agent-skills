@@ -33,11 +33,25 @@ Call `run_sql` only through the `moqui` MCP server. It accepts a single read-onl
 
 3. Call `run_sql` with the query and matching `maxRows`.
 4. Render the returned rows as a Markdown table. Preserve returned column names and show only the returned rows.
-5. When requested, return a Vega-Lite v5 specification with inline `data.values` copied only from those rows. Use no external URL, JavaScript expression, transform that fetches data, or hidden source.
+5. When requested, create a LibreChat HTML artifact that renders a Chart.js chart from only those rows. Include the same bounded values in a visible HTML table below the chart.
 
-## Vega-Lite template
+## Chart.js artifacts
 
-Use a simple accessible bar chart when the result has a category and a numeric measure:
+Create a named HTML artifact, not a Vega-Lite MIME artifact. For a bar chart, use a `<canvas>` and the pinned Chart.js 4.4.7 UMD bundle:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+```
+
+- Put the returned data into a JavaScript literal using JSON serialization; never interpolate SQL text or unescaped values into HTML.
+- Use no user-provided URL, script, iframe, network request, plugin, or external dataset other than the pinned Chart.js bundle.
+- Use `responsive: true`, `maintainAspectRatio: false`, a visible title, labelled axes, and tooltips.
+- Provide a table under the chart so the result remains available if Chart.js cannot load.
+- Use only the bounded rows returned by `run_sql`; never synthesize or fetch more data.
+
+## Vega-Lite export
+
+LibreChat does not natively render `application/vnd.vegalite+json`. When the user explicitly requests Vega-Lite, provide the following v5 specification as a downloadable code block after the rendered Chart.js HTML artifact. Use only the returned rows in `data.values`:
 
 ```json
 {
@@ -56,7 +70,7 @@ Use a simple accessible bar chart when the result has a category and a numeric m
 }
 ```
 
-Mark a chart artifact as `application/vnd.vegalite+json` when the client supports that MIME type. If it renders as JSON, still provide the valid specification and state that the LibreChat Vega-Lite renderer is not installed or enabled.
+Do not emit a Vega-Lite MIME artifact. The visual chart must be a native LibreChat HTML artifact using Chart.js; the Vega-Lite JSON is an optional portable export.
 
 ## Uploaded files and sandbox work
 
@@ -66,4 +80,4 @@ For a file analysis, show the detected schema, a small bounded preview, the tran
 
 ## Response format
 
-For a successful SQL analysis provide: the exact SQL used, a Markdown table, the number of returned rows, and (when requested) the Vega-Lite specification/artifact. For a blocked request provide: the exact tool error, the prerequisite or permission needed, and no fabricated output.
+For a successful SQL analysis provide: the exact SQL used, a Markdown table, the number of returned rows, and (when requested) a rendered Chart.js HTML artifact plus an optional Vega-Lite export. For a blocked request provide: the exact tool error, the prerequisite or permission needed, and no fabricated output.
