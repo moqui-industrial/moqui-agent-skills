@@ -24,7 +24,7 @@ Call `run_sql` only through the `moqui` MCP server. It accepts a single read-onl
 2. Build one bounded query with explicit columns. For a product-type chart, aggregate the type and count in the same query:
 
    ```sql
-   SELECT productTypeId, COUNT(*) AS productCount
+   SELECT productTypeEnumId, COUNT(*) AS productCount
    FROM mantle_product
    GROUP BY productTypeId
    ORDER BY productCount DESC
@@ -47,9 +47,9 @@ Use a simple accessible bar chart when the result has a category and a numeric m
   "mark": "bar",
   "encoding": {
     "x": {"field": "productCount", "type": "quantitative", "title": "Products"},
-    "y": {"field": "productTypeId", "type": "nominal", "sort": "-x", "title": "Product type"},
+    "y": {"field": "productTypeEnumId", "type": "nominal", "sort": "-x", "title": "Product type"},
     "tooltip": [
-      {"field": "productTypeId", "type": "nominal"},
+      {"field": "productTypeEnumId", "type": "nominal"},
       {"field": "productCount", "type": "quantitative"}
     ]
   }
