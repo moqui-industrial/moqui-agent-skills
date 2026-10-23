@@ -1,6 +1,6 @@
 ---
 name: moqui-bi-analysis
-description: Analyze authorized Moqui DataDocuments with the moqui MCP run_sql tool, return bounded Markdown results, and create safe Vega-Lite specifications from returned rows. Use for BI exploration, SQL analysis, DataDocument reporting, and chart specifications without bypassing Moqui authorization.
+description: Analyze authorized Moqui DataDocuments with the moqui MCP run_sql tool, return bounded Markdown results, and create safe Chart.js artifacts from returned rows. Use for BI exploration, SQL analysis, DataDocument reporting, and charts without bypassing Moqui authorization.
 ---
 
 # Moqui BI analysis
