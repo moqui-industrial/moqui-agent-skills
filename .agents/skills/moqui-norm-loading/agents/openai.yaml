@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui Norm Loading"
+  short_description: "Legislation and standards as verified Agreement items"
+  default_prompt: "Use $moqui-norm-loading to load this norm into Agreement seed data and verify it against the source."
+
+policy:
+  allow_implicit_invocation: true

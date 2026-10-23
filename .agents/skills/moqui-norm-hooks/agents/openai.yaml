@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui Norm Hooks"
+  short_description: "Categories, features and device purposes linked to norm items"
+  default_prompt: "Use $moqui-norm-hooks to derive and verify the hooks of this norm and query what applies to a product."
+
+policy:
+  allow_implicit_invocation: true

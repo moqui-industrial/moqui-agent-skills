@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui Seed Reload"
+  short_description: "Load seed files into a test instance and verify by SQL"
+  default_prompt: "Use $moqui-seed-reload to back up the test database, load these seed files and verify them."
+
+policy:
+  allow_implicit_invocation: true
