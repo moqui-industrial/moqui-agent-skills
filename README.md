@@ -15,6 +15,7 @@ Skills that teach a coding agent (Codex, Claude Code or similar) to read, write 
 | `moqui-dbform` | Forms and surveys as data |
 | `moqui-systemmessage` | Stateful integration with external systems |
 | `moqui-instance` | Application instance provisioning and lifecycle, SaaS per subscriber, scaling on top |
+| `moqui-bi-analysis` | Authorized DataDocument SQL analysis through Moqui MCP, Markdown results and Vega-Lite specifications |
 
 ## Install
 

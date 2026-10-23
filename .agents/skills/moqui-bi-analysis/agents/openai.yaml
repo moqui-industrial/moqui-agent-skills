@@ -1,0 +1,4 @@
+interface:
+  display_name: "Moqui BI Analysis"
+  short_description: "Query authorized DataDocuments and produce bounded BI results."
+  default_prompt: "Use the moqui-bi-analysis skill to analyze the requested data safely."
