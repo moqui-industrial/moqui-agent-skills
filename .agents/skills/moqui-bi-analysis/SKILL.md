@@ -33,25 +33,33 @@ Call `run_sql` only through the `moqui` MCP server. It accepts a single read-onl
 
 3. Call `run_sql` with the query and matching `maxRows`.
 4. Render the returned rows as a Markdown table. Preserve returned column names and show only the returned rows.
-5. When requested, create a LibreChat HTML artifact that renders a Chart.js chart from only those rows. Include the same bounded values in a visible HTML table below the chart.
+5. When requested, emit a `chartjs` fenced JSON block from only those rows. LibreChat renders this bounded chart format inline in the conversation. Include the same bounded values in a Markdown table below the chart.
 
-## Chart.js artifacts
+## Inline Chart.js format
 
-Create a named HTML artifact, not a Vega-Lite MIME artifact. For a bar chart, use a `<canvas>` and the pinned Chart.js 4.4.7 UMD bundle:
+Do not create HTML, SVG, React, a Canvas script, or a Vega-Lite MIME artifact. Emit exactly one JSON object in a `chartjs` fenced block using this format:
 
-```html
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+```chartjs
+{
+  "title": "Products by product type",
+  "type": "bar",
+  "labels": ["PtAsset", "PtDigitalAsset"],
+  "datasets": [
+    {"label": "Products", "data": [24, 1]}
+  ]
+}
 ```
 
-- Put the returned data into a JavaScript literal using JSON serialization; never interpolate SQL text or unescaped values into HTML.
-- Use no user-provided URL, script, iframe, network request, plugin, or external dataset other than the pinned Chart.js bundle.
-- Use `responsive: true`, `maintainAspectRatio: false`, a visible title, labelled axes, and tooltips.
-- Provide a table under the chart so the result remains available if Chart.js cannot load.
+- The accepted chart types are `bar`, `line`, `pie`, and `doughnut`; use `bar` for category counts.
+- Use at most 100 labels and 8 datasets. Every dataset must have one finite number for each label.
+- Copy values only from the bounded `run_sql` response. Do not include `options`, JavaScript, URLs, scripts, HTML, expressions, or unescaped content.
+- The client supplies responsive layout, colours, labels, tooltips, and a pinned Chart.js runtime.
+- Provide a Markdown table under the block so the result remains available if the client cannot load Chart.js.
 - Use only the bounded rows returned by `run_sql`; never synthesize or fetch more data.
 
 ## Vega-Lite export
 
-LibreChat does not natively render `application/vnd.vegalite+json`. When the user explicitly requests Vega-Lite, provide the following v5 specification as a downloadable code block after the rendered Chart.js HTML artifact. Use only the returned rows in `data.values`:
+LibreChat does not natively render `application/vnd.vegalite+json`. When the user explicitly requests Vega-Lite, provide the following v5 specification as a downloadable code block after the rendered Chart.js block. Use only the returned rows in `data.values`:
 
 ```json
 {
@@ -70,7 +78,7 @@ LibreChat does not natively render `application/vnd.vegalite+json`. When the use
 }
 ```
 
-Do not emit a Vega-Lite MIME artifact. The visual chart must be a native LibreChat HTML artifact using Chart.js; the Vega-Lite JSON is an optional portable export.
+Do not emit a Vega-Lite MIME artifact. The visual chart must use the inline `chartjs` block; the Vega-Lite JSON is an optional portable export.
 
 ## Uploaded files and sandbox work
 
@@ -80,4 +88,4 @@ For a file analysis, show the detected schema, a small bounded preview, the tran
 
 ## Response format
 
-For a successful SQL analysis provide: the exact SQL used, a Markdown table, the number of returned rows, and (when requested) a rendered Chart.js HTML artifact plus an optional Vega-Lite export. For a blocked request provide: the exact tool error, the prerequisite or permission needed, and no fabricated output.
+For a successful SQL analysis provide: the exact SQL used, a Markdown table, the number of returned rows, and (when requested) an inline Chart.js block plus an optional Vega-Lite export. For a blocked request provide: the exact tool error, the prerequisite or permission needed, and no fabricated output.
