@@ -142,6 +142,8 @@ with the Italian names), and with `--db` the read-only SQL checks of `moqui-seed
   (`CMP_PC_SUPPLY_DISCONNECTING_DEVICE`): concept, broader concepts transitively, related concepts one step, and the
   items they reach with role and parent clause. Exclude generic roots (machinery, electrical equipment: concepts
   with more than about a hundred links) from the broader walk, or the answer drowns in them; show `self` first.
+- From a level or a requirement-assigning hook, `assets/hook-requirements.sql` takes the second step: the
+  requirements its items cite (`iac-sl-2` reaches the CRs, SRs and REs of security level 2).
 - When a reader change moves item ids, migrate the links and reviews by content with `hooks_file.py migrate
   <alias> <old 40_ seed> <new 40_ seed> [--labels LABELS-xx.json] [--write] proposals/VOCAB-BASE.json
   proposals/HOOKS-*.json`: the item with the same text, the item that took the text in (a legend joined to its
