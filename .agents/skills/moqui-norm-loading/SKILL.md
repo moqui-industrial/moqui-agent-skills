@@ -54,7 +54,10 @@ the reading becomes more faithful; then migrate every reference to the old id by
    (page headers and footers), `indexes` (indexes printed in columns).
 2. Build into a scratch directory: `python3 build_agreement.py <normId> --data-dir <scratch>`. The build fails on
    duplicate ids, on a clause whose items do not rebuild its text (the error shows where the texts diverge), on an
-   unresolved citation of the norm itself and on an unresolved index reference.
+   unresolved citation of the norm itself, on an unresolved index reference and, for Formex, on item texts outside
+   0.9-1.05 of the source characters. That ratio is only a guard: when it fails, run the block check on the items
+   before suspecting the reader (a counter that dropped the text after each footnote made a faithful act look 7 %
+   too long).
 3. Verify the content, part by part, before going on (counts and coverage ratios prove nothing):
    - Formex: `check_formex_items.py` (every leaf block of the source in exactly one item, 0 lost, 0 duplicated);
    - PDF: `check_words.py <normId>` compares the words of the pages kept with the words of the items and lists the
@@ -101,8 +104,14 @@ figure (`FIGH.4-2`), a translation slip stays, and the build report lists them.
 
 ## References
 
-- Every citation of the act itself must resolve to an item. "Article N thereof" belongs to the act named before;
-  equation, figure and table numbers are not references.
+- Every citation of the act itself must resolve to an item, as precisely as it is written: "Part I, point (2)(c), of
+  Annex I" reaches that sub-point, not the annex. "Article N thereof" belongs to the act named before, "Article 218
+  TFEU" to the Treaty, "Annex III to that Regulation" to the act of that kind named last; the act cited by its own
+  name ("Annex III of Regulation (EU) 2023/1230" inside that Regulation) is itself. Equation, figure and table
+  numbers are not references.
+- A citation of a partition of another loaded act reaches its item ("sections 1.1.9 and 1.2.1 of Annex III" of the
+  Machinery Regulation from the Cyber Resilience Act): build the cited act first.
+- Parts and classes keep the number as printed in their id (`ANXI.II`, `ANXIII.clI`), never a position (`g1`).
 - A partition of another norm stays with its text ("ISO 14118:2000, Clause 5"); when that norm is loaded the
   reference reaches its item through the `42_` file.
 - A part number is another document (ISO 12100-1 is not ISO 12100). A dated citation reaches a loaded norm only for
@@ -118,16 +127,19 @@ you touched, because a change for one edition can move the items of another.
 python3 tools/verify_norms.py            # all norms; add a normId to build only that one, --db for the instance
 ```
 
-Per norm it builds into a scratch directory (build errors stop it), compares ids and texts with the previous build,
-runs the content check (Formex blocks, or PDF words page by page) and `check_data.py`; then the unit tests,
+Per norm it builds into a scratch directory (build errors stop it), compares the new seeds with the seeds in `data/`
+(every item with every field, every reference: the seeds are the value of the work, so they are the baseline, not an
+intermediate file or the database), runs the content check (Formex blocks, or PDF words page by page) and
+`check_data.py`; then the unit tests,
 `vocab.py --check`, `check_hooks.py` of every norm in each language it is loaded in (an Italian edition is checked
 with the Italian names), and with `--db` the read-only SQL checks of `moqui-seed-reload`. It ends with a table and
 `RESULT: PASS` or `FAIL`.
 
 - Commit or load only on PASS. A FAIL is fixed at its cause (reader, configuration, hooks file), then the loop runs
   again: repeat until PASS.
-- Every difference the loop shows must be explained before going on: an id or text that changed (a more faithful
-  reading: migrate the references; otherwise a regression: fix the rule), a page that loses words (cover, contents,
+- Every difference the loop shows must be explained before going on: an id, field or text that changed, a reference
+  that moved (a reference rule is shared by every act of that reader), each either a more faithful reading (migrate
+  the references to moved ids) or a regression (fix the rule); a page that loses words (cover, contents,
   other-language index expected; a section of the norm is a reader error), a finding, a stale review.
 - When the loop itself reports something that cannot be (`entities=0` in `check_data`, every file failing the same
   way), fix the loop first: a broken check that passes is worse than no check.

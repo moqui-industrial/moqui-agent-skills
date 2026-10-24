@@ -95,8 +95,8 @@ you touched, because a change for one edition can move the items of another.
 python3 tools/verify_norms.py            # all norms; add a normId to build only that one, --db for the instance
 ```
 
-Per norm it builds into a scratch directory (build errors stop it), compares ids and texts with the previous build,
-runs the content check (Formex blocks, or PDF words page by page) and `check_data.py`; then the unit tests,
+Per norm it builds into a scratch directory (build errors stop it), compares the new seeds with the seeds in `data/`
+(items with every field, references), runs the content check (Formex blocks, or PDF words page by page) and `check_data.py`; then the unit tests,
 `vocab.py --check`, `check_hooks.py` of every norm in each language it is loaded in (an Italian edition is checked
 with the Italian names), and with `--db` the read-only SQL checks of `moqui-seed-reload`. It ends with a table and
 `RESULT: PASS` or `FAIL`.
