@@ -61,6 +61,11 @@ Tools in the `moqui-compliance` component, `tools/extraction`: `vocab.py`, `chec
 - Names of a concept: its label without parenthesised parts and the defined terms of its `d` items, except a term
   that is another concept's label. Plurals and names broken over lines match. An occurrence inside the name of a
   linked concept is not a finding ("guard" inside a linked "adjustable guard").
+- Plurals of other languages are generated from the names, not listed: in Italian the words before the first
+  preposition change their ending, and in a second form the adjectives after the complement agree too
+  (`sistemi di controllo relativi alla sicurezza`). Plural matching finds links the first language missed (its
+  plural is often a different word: "control position" and "postazioni di comando"); a plural that is another word
+  ("condotti a mano", hand-guided) is reviewed in that language.
 - A modelled figure is checked by its boxes, and a box by its own label, not by the boxes its flows name.
 - `lexiconSkip` (all norms): a label that matches figurative uses ("impact"), with its real uses linked by hand.
   `normLexiconSkip` (one norm): a name with another sense in that norm ("protective device" is an electrical
@@ -109,6 +114,10 @@ with the Italian names), and with `--db` the read-only SQL checks of `moqui-seed
 
 - `tests/test_hooks.py`: for important hooks the items they must reach and must not reach, feature groups of
   categories, feature types, values and units of thresholds. Run it and `vocab.py --check` before every commit.
+  Every new norm adds its cases (each hook it defines, and a shared hook reaching items of several norms). One key
+  per hook: a second entry with the same key in a dict literal silently replaces the first, so its cases never run.
+- A threshold feature (SIL 3, PFH below 1e-7) is linked at its own table row, not only at the table: a query from
+  the hook must land on the row that states it and not on the other rows.
 - After a reload (`moqui-seed-reload`), run `assets/hook-items.sql` with the record id of a hook in place of `:hook`
   (`CMP_PC_SUPPLY_DISCONNECTING_DEVICE`): concept, broader concepts transitively, related concepts one step, and the
   items they reach with role and parent clause. Exclude generic roots (machinery, electrical equipment: concepts
