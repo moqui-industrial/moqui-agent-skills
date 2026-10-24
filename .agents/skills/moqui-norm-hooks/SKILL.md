@@ -31,8 +31,17 @@ Tools in the `moqui-compliance` component, `tools/extraction`: `vocab.py`, `chec
   component type data with its `Uom`, `UomConversion` and unit type; a new feature type into `ProductFeatureType`.
 - Reuse a concept before adding one. A concept of the wrong scheme is fixed in place (a circuit the BOM carries is a
   `product`, not a `term`).
-- Edit hooks files with `hooks_file.py` (`add` a part file, `unreview` stale reviews, `format`): one key and one list
-  element per line, so a pass is a small diff. Never re-indent a whole file.
+- Edit hooks files with `hooks_file.py` (`add` a part file, `unreview` stale reviews, `dedupe` links given twice,
+  `format`): one key and one list element per line, so a pass is a small diff. Never re-indent a whole file.
+- Names in other languages: `proposals/LABELS-<lang>.json`, per concept `[preferred label, other terms ...]`, required
+  for every concept (vocab.py fails otherwise). They name the records in that language (`LocalizedEntityField`) and the
+  graph (`CmpConceptLocalLabel`, `CmpConceptLocalAltLabel`), and `check_hooks.py --lang <lang>` matches them against
+  an edition in that language. Leave out terms that are generic words in that language ("presa", "arresto"); a label
+  that is itself generic goes to the `lexiconSkip` of the LABELS file. Check a fully hooked norm in the new language
+  first (the Italian edition of the Regulation): its findings show noisy names and links the first language missed.
+  A hooks file states its `language`; a review made for another language carries it as fourth element.
+- Notions that are the subject of a whole norm (SCS and safety function in IEC 62061, electrical equipment in IEC
+  60204-1) are linked at the clauses whose subject they are, not at every paragraph.
 
 ## The pass, part by part
 
@@ -70,6 +79,31 @@ Tools in the `moqui-compliance` component, `tools/extraction`: `vocab.py`, `chec
   and table values are reviewed.
 - Device roles from the functional chain: sensors `role-input`, logic `role-logic`, power control `role-output`.
   Zones of an assembly for stopping or isolation are device groups whose purpose is the function.
+
+## The verification loop
+
+Run it after every step, not only at the end: after each reader rule, configuration change, transcription, figure
+model, hook part or vocabulary change, and before every commit and every load. It checks every norm, not only the one
+you touched, because a change for one edition can move the items of another.
+
+```sh
+python3 tools/verify_norms.py            # all norms; add a normId to build only that one, --db for the instance
+```
+
+Per norm it builds into a scratch directory (build errors stop it), compares ids and texts with the previous build,
+runs the content check (Formex blocks, or PDF words page by page) and `check_data.py`; then the unit tests,
+`vocab.py --check`, `check_hooks.py` of every norm in each language it is loaded in (an Italian edition is checked
+with the Italian names), and with `--db` the read-only SQL checks of `moqui-seed-reload`. It ends with a table and
+`RESULT: PASS` or `FAIL`.
+
+- Commit or load only on PASS. A FAIL is fixed at its cause (reader, configuration, hooks file), then the loop runs
+  again: repeat until PASS.
+- Every difference the loop shows must be explained before going on: an id or text that changed (a more faithful
+  reading: migrate the references; otherwise a regression: fix the rule), a page that loses words (cover, contents,
+  other-language index expected; a section of the norm is a reader error), a finding, a stale review.
+- When the loop itself reports something that cannot be (`entities=0` in `check_data`, every file failing the same
+  way), fix the loop first: a broken check that passes is worse than no check.
+- Write in the session log what each loop run found and what was fixed.
 
 ## Suite and query
 

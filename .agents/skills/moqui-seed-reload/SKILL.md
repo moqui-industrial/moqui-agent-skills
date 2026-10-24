@@ -48,7 +48,8 @@ the default development configuration) and the instance run as a service; adapt 
      every loaded norm) and `assets/cross-references.sql` (references between loaded norms): both must report 0;
    - the prepared queries of the feature you loaded (for the compliance vocabulary: `hook-items.sql` of
      `moqui-norm-hooks`).
-7. **Record** in the session log: stop and start times, backup name, files and record counts, check results.
+7. **Run the verification loop with `--db`** (`moqui-norm-loading`), when the data are norms or their vocabulary.
+8. **Record** in the session log: stop and start times, backup name, files and record counts, check results.
 
 ## When something is wrong
 

@@ -108,8 +108,33 @@ figure (`FIGH.4-2`), a translation slip stays, and the build report lists them.
 - A part number is another document (ISO 12100-1 is not ISO 12100). A dated citation reaches a loaded norm only for
   the years of its edition (`refs.EDITION_YEARS`); an undated one reaches the edition loaded.
 
+## The verification loop
+
+Run it after every step, not only at the end: after each reader rule, configuration change, transcription, figure
+model, hook part or vocabulary change, and before every commit and every load. It checks every norm, not only the one
+you touched, because a change for one edition can move the items of another.
+
+```sh
+python3 tools/verify_norms.py            # all norms; add a normId to build only that one, --db for the instance
+```
+
+Per norm it builds into a scratch directory (build errors stop it), compares ids and texts with the previous build,
+runs the content check (Formex blocks, or PDF words page by page) and `check_data.py`; then the unit tests,
+`vocab.py --check`, `check_hooks.py` of every norm in each language it is loaded in (an Italian edition is checked
+with the Italian names), and with `--db` the read-only SQL checks of `moqui-seed-reload`. It ends with a table and
+`RESULT: PASS` or `FAIL`.
+
+- Commit or load only on PASS. A FAIL is fixed at its cause (reader, configuration, hooks file), then the loop runs
+  again: repeat until PASS.
+- Every difference the loop shows must be explained before going on: an id or text that changed (a more faithful
+  reading: migrate the references; otherwise a regression: fix the rule), a page that loses words (cover, contents,
+  other-language index expected; a section of the norm is a reader error), a finding, a stale review.
+- When the loop itself reports something that cannot be (`entities=0` in `check_data`, every file failing the same
+  way), fix the loop first: a broken check that passes is worse than no check.
+- Write in the session log what each loop run found and what was fixed.
+
 ## Done
 
-A norm is loaded when its build has 0 errors, its content check explains every lost page, sampled parts read like
-the source, `check_data.py` reports 0 errors, the tests pass, it is committed, and `moqui-seed-reload` shows it in
-the database with 0 orphan items and 0 dangling references.
+A norm is loaded when the verification loop reports PASS with every difference explained, sampled parts read like
+the source, it is committed, and `verify_norms.py --db` after `moqui-seed-reload` shows it in the database with 0
+orphan items and 0 dangling references.
