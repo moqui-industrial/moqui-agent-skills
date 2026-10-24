@@ -54,7 +54,17 @@ Tools in the `moqui-compliance` component, `tools/extraction`: `vocab.py`, `chec
    ancestors). Fix each finding, or declare it in `reviewed` with its reason. A part is done at 0 findings.
 4. After adding concepts, check every norm again: new concepts reveal links in parts already done.
 5. A rule-based pass (link the concept wherever the text names it, role by item kind) is allowed only when a random
-   sample of its links is read against the text.
+   sample of its links is read against the text: `term_pass.py <normId> <alias> --part N --out part.json [--lang it]
+   [--exclude a,b] [--sample 25]` turns the TERM findings into a part (definitions, notes, lists, rows, front matter:
+   `l`; requirement text: `s`) and prints the sample. Read it, fix false senses with `normLexiconSkip` (a name with
+   another sense in that norm: "conduit" between zones, "guard" a security guard, "posture" of security, "catene"
+   supply chains) or a review, correct roles of examples, then `add` and `dedupe`. Look at the counts per concept
+   first: a concept with hundreds of TERM findings is the subject of the norm and goes at clause level instead.
+6. New concepts are named in every language at once: `hooks_file.py labels proposals/LABELS-it.json new.json`
+   (keeps the file layout; never rewrite the labels file with another indentation). Alternative names that are
+   generic in that language ("zona", a label whose parentheses the check drops) make false findings in other norms:
+   after adding concepts, check every norm.
+7. Record ids are at most 40 characters (`CMP_PC_` plus the key): give long listed products short readable keys.
 
 ## How the check reads
 
@@ -82,6 +92,16 @@ Tools in the `moqui-compliance` component, `tools/extraction`: `vocab.py`, `chec
 - Threshold features for scope limits, conditions that trigger a requirement and limits on characteristics a device
   record carries (voltages, currents, power, conductor sizes, environment); installation dimensions, test values
   and table values are reviewed.
+- Levels a product reaches (IEC 62443 SL-C per foundational requirement, SIL, maturity of a supplier process) are
+  features with a number and `>=`, one feature group per dimension, defined at the item that describes the level,
+  linked from every list or table row that assigns requirements to that level; the requirements are reached
+  through the references of those items (`CR 1.1 (1)` resolved at loading).
+- Requirements a product meets (CRA Annex I part I) are features of a group with a feature type of their own,
+  related to the equivalent notions of other norms (access protection to FR 1 and FR 2 of IEC 62443).
+- Lists of product categories in a regulation (CRA Annexes III and IV) give one product concept per point under a
+  concept for the class; names from the act (public) and short keys.
+- Obligations of operators and authorities (keeping documents 10 years, notification deadlines, fines) are reviews,
+  or values of a process concept; only what a product record carries is a threshold feature (support period).
 - Device roles from the functional chain: sensors `role-input`, logic `role-logic`, power control `role-output`.
   Zones of an assembly for stopping or isolation are device groups whose purpose is the function.
 

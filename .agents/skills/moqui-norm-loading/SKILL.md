@@ -92,7 +92,9 @@ the reading becomes more faithful; then migrate every reference to the old id by
   distance from the previous one exceeds 1.4 times its font size starts a paragraph).
 - Titles wrapped on two lines are completed from the table of contents; a caption title continued on a line that
   starts in lower case is one title. A numbered line is a heading only if its title begins as the contents entry of
-  that number ("5 Optimizing ..." in a table is not clause 5).
+  that number ("5 Optimizing ..." in a table is not clause 5). An indented numbered line is a heading when the
+  contents confirm it or when it is aligned with the text that follows it (a page whose table starts further left
+  than its text). Captions continue as "(continued)", "(segue)", "(1 di 2)", "(2 of 4)".
 - National and European wrappers: CEI cover and data pages, the EN cover in three languages, "European foreword"
   (its own front section), endorsement notice. Page headers in every form of the edition go in `boilerplate`
   ("IEC 62443-4-1:2018 © IEC 2018", "62443-3-3 © IEC:2013(E)", "Recepita come CEI ...").
@@ -136,6 +138,9 @@ figure (`FIGH.4-2`), a translation slip stays, and the build report lists them.
   TFEU" to the Treaty, "Annex III to that Regulation" to the act of that kind named last; the act cited by its own
   name ("Annex III of Regulation (EU) 2023/1230" inside that Regulation) is itself. Equation, figure and table
   numbers are not references.
+- A series that names its requirements (IEC 62443: "CR 1.1", "SR 1.1 RE 2", "NDR 1.13 (1)", "SM-1") gets
+  `requirementSeries` in `norms.json`: identifiers indexed from clause titles and numbered enhancements, a citation
+  reaches its own item, else the part of the series that defines it. Build the parts it cites first.
 - A citation of a partition of another loaded act reaches its item ("sections 1.1.9 and 1.2.1 of Annex III" of the
   Machinery Regulation from the Cyber Resilience Act): build the cited act first.
 - Parts and classes keep the number as printed in their id (`ANXI.II`, `ANXIII.clI`), never a position (`g1`).
