@@ -60,9 +60,12 @@ the reading becomes more faithful; then migrate every reference to the old id by
    too long).
 3. Verify the content, part by part, before going on (counts and coverage ratios prove nothing):
    - Formex: `check_formex_items.py` (every leaf block of the source in exactly one item, 0 lost, 0 duplicated);
-   - PDF: `check_words.py <normId>` compares the words of the pages kept with the words of the items and lists the
-     pages that lose words. Explain every one: cover, contents, an index in the other language are expected; a
-     section of the norm is a reader error;
+   - PDF: `check_words.py <normId> --lines` compares the words of the pages kept with the words of the items and
+     lists the pages that lose words, then the lines of the PDF of which no three-word sequence is in an item. Word
+     counts hide a paragraph cut at a page break or a page header kept as text (the same words occur elsewhere);
+     the line list shows them. Explain every page: cover, contents, the EN cover in three languages, an index in
+     the other language, table lines with empty middle cells are expected; a paragraph of the norm is a reader
+     error. The build's character ratio is only a guard;
    - read sampled items side by side with the source: lists under the right paragraph, notes in order, definitions
      with their term, tables with labelled columns, figures as text.
 4. Check the build report: `tocMissing` empty, `languageCorrected`, `duplicateCaptions`, `transcribedTables`.
@@ -88,7 +91,31 @@ the reading becomes more faithful; then migrate every reference to the old id by
 - A text without blank lines between paragraphs gets them from the page geometry (`paragraphGaps`: a line whose
   distance from the previous one exceeds 1.4 times its font size starts a paragraph).
 - Titles wrapped on two lines are completed from the table of contents; a caption title continued on a line that
-  starts in lower case is one title.
+  starts in lower case is one title. A numbered line is a heading only if its title begins as the contents entry of
+  that number ("5 Optimizing ..." in a table is not clause 5).
+- National and European wrappers: CEI cover and data pages, the EN cover in three languages, "European foreword"
+  (its own front section), endorsement notice. Page headers in every form of the edition go in `boilerplate`
+  ("IEC 62443-4-1:2018 © IEC 2018", "62443-3-3 © IEC:2013(E)", "Recepita come CEI ...").
+- A rule line (`_____`) followed only by marked lines ("3 ...", "a ...", "( 1) Editor's Note ...") separates the
+  footnotes of the page: the paragraph goes on on the next page and the footnotes come at the end of the clause. A
+  rule followed by other text ends the document.
+- Characters in the private use area are decoded by their font (PyMuPDF knows it, pdftotext does not): Symbol to
+  Unicode (λ, ×, ∑, ≥; Greek capitals drawn like Latin letters as Latin, "MTTF"), Wingdings (✓ ✗ ●), the Adobe
+  serif © of page headers. Tall brackets are pieces: the middle piece is the bracket.
+- Formulas: a fraction printed on three lines is written numerator/denominator in its slot of the middle line (the
+  inside of an empty bracket pair or a gap); the words of a numerator split where the middle line has a sign
+  between them ("2 U0" over "≤ ×" is 2/3 × U0/Ia). The legend ("where"/"dove", "X is ...") joins its formula while
+  contiguous; after a list or a note its lines are paragraphs. A Greek letter does not continue a paragraph broken
+  by the page.
+- Lists: a note between two items belongs to the item before (dash items; numbered sub-points past legends and
+  notes); a note between a paragraph that introduces a list and the list belongs to that paragraph; 1) 2) are
+  sibling points; a paragraph ending ":" followed by a new a) closes the open list; a point ending "," or ";" is
+  part of a sentence, not a heading; "(1) Title" requirement enhancements are numbered points owning the text after
+  them ("(1)" stays in the text, the number in `itemNumber`).
+- Tables: a table continues on the next page with "(continued)" or with its header row repeated, on pages of the
+  edition's language only (the Italian page of a bilingual CEI edition is not a continuation); a one-row header is
+  aligned to its value columns when the grid is finer than the table; header note letters are dropped only as
+  superscripts (smaller and raised: "I a" is a subscript and stays, "10-5" and "mm2" are exponents and stay).
 
 ## Tables and figures that are images
 

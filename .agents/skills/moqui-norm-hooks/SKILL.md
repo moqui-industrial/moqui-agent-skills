@@ -122,5 +122,10 @@ with the Italian names), and with `--db` the read-only SQL checks of `moqui-seed
   (`CMP_PC_SUPPLY_DISCONNECTING_DEVICE`): concept, broader concepts transitively, related concepts one step, and the
   items they reach with role and parent clause. Exclude generic roots (machinery, electrical equipment: concepts
   with more than about a hundred links) from the broader walk, or the answer drowns in them; show `self` first.
-- When a reader change moves item ids, migrate references by content: an old id maps to the new id with the same
-  text in the same clause or table, else to its container; then remove duplicate links.
+- When a reader change moves item ids, migrate the links and reviews by content with `hooks_file.py migrate
+  <alias> <old 40_ seed> <new 40_ seed> [--labels LABELS-xx.json] [--write] proposals/VOCAB-BASE.json
+  proposals/HOOKS-*.json`: the item with the same text, the item that took the text in (a legend joined to its
+  formula), the new rows an old block was split into that name the concept (dropped when none does), else the
+  parent. It also moves links of ids that now hold another text (after a merge, `D.2.p7` is another paragraph):
+  a link follows its text, not its id. Read every printed move, run it once per pair of seeds (old = the seeds in
+  `data/`, new = the build), then `dedupe`, and write the new seeds only after the loop passes.
