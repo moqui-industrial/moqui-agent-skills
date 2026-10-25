@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui Norm Search"
+  short_description: "Norm references of a classified product: hooks, concepts, items, associations"
+  default_prompt: "Use $moqui-norm-search to find the norm articles and clauses that apply to this product."
+
+policy:
+  allow_implicit_invocation: true

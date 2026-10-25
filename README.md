@@ -19,6 +19,7 @@ Skills that teach a coding agent (Codex, Claude Code or similar) to read, write 
 | `moqui-norm-loading` | Legislation and technical standards as Agreement items (article, paragraph, point), with references, tables and figures as text, verified against the source |
 | `moqui-norm-hooks` | Categories, features with thresholds, device purposes and groups linked to the norm items that name them; repeatable check, hook suite, prepared hook query |
 | `moqui-norm-associations` | Associative graph of the norms (moqui-math Graph): citations written in the texts and expert associations between partitions of different norms, with kind, confidence, pass and evidence; sample review, SQL checks, neighbour query |
+| `moqui-norm-search` | Norm references of a classified product: DataDocuments from a category, feature, feature group or device purpose to concepts, norm items and associations, indexed in OpenSearch; database-only service, SQL fallback, classification procedure, baselines |
 | `moqui-seed-reload` | Seed files into a test instance: backup, clean delete, ordered load, read-only SQL checks |
 
 ## Install

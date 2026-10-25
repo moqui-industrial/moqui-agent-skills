@@ -23,8 +23,12 @@ the default development configuration) and the instance run as a service; adapt 
 
    ```sh
    java -cp <h2 jar> org.h2.tools.Shell -url "jdbc:h2:<abs path>/runtime/db/h2/moqui" -user sa -password sa \
-     -sql "DELETE FROM AGREEMENT_ASSOC WHERE AGREEMENT_ID IN (...) OR TO_AGREEMENT_ID IN (...); DELETE FROM AGREEMENT_ITEM WHERE AGREEMENT_ID IN (...)"
+     -sql "DELETE FROM AGREEMENT_ASSOC WHERE AGREEMENT_ID IN (...); DELETE FROM AGREEMENT_ITEM WHERE AGREEMENT_ID IN (...)"
    ```
+
+   Delete only the rows the reloaded files own (an `AgreementAssoc` belongs to the file of its `agreementId`). A
+   delete by `TO_AGREEMENT_ID` also removes rows of files you do not reload: the link of a translation to its
+   primary edition disappeared that way. When in doubt delete and reload every norm file: it takes minutes.
 
    The H2 jar is in the exploded war (`execwartmp*/ROOT/webapp/WEB-INF/lib/h2-*.jar`) or in the Gradle cache. Count
    the rows first (`SELECT COUNT(*) ...`), compare with what you loaded last time, then delete. For a graph, delete
@@ -48,7 +52,8 @@ the default development configuration) and the instance run as a service; adapt 
      every loaded norm) and `assets/cross-references.sql` (references between loaded norms): both must report 0;
    - the prepared queries of the feature you loaded (for the compliance vocabulary: `hook-items.sql` of
      `moqui-norm-hooks`).
-7. **Run the verification loop with `--db`** (`moqui-norm-loading`), when the data are norms or their vocabulary.
+7. **Run the verification loop with `--db`** (`moqui-norm-loading`), when the data are norms or their vocabulary:
+   it also compares items and associations per Agreement in the database with the seed files (stale rows show there).
 8. **Record** in the session log: stop and start times, backup name, files and record counts, check results.
 
 ## When something is wrong

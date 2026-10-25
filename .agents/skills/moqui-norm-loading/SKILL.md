@@ -164,7 +164,8 @@ Per norm it builds into a scratch directory (build errors stop it), compares the
 intermediate file or the database), runs the content check (Formex blocks, or PDF words page by page) and
 `check_data.py`; then the unit tests,
 `vocab.py --check`, `check_hooks.py` of every norm in each language it is loaded in (an Italian edition is checked
-with the Italian names), and with `--db` the read-only SQL checks of `moqui-seed-reload`. It ends with a table and
+with the Italian names), and with `--db` the read-only SQL checks of `moqui-seed-reload` and the database against the seeds (items and
+associations per Agreement: rows of an older build stay after a load). It ends with a table and
 `RESULT: PASS` or `FAIL`.
 
 - Commit or load only on PASS. A FAIL is fixed at its cause (reader, configuration, hooks file), then the loop runs
