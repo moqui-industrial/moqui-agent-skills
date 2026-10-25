@@ -18,6 +18,7 @@ Skills that teach a coding agent (Codex, Claude Code or similar) to read, write 
 | `moqui-bi-analysis` | Authorized DataDocument SQL analysis through Moqui MCP, Markdown tables and validated inline Chart.js blocks |
 | `moqui-norm-loading` | Legislation and technical standards as Agreement items (article, paragraph, point), with references, tables and figures as text, verified against the source |
 | `moqui-norm-hooks` | Categories, features with thresholds, device purposes and groups linked to the norm items that name them; repeatable check, hook suite, prepared hook query |
+| `moqui-norm-associations` | Associative graph of the norms (moqui-math Graph): citations written in the texts and expert associations between partitions of different norms, with kind, confidence, pass and evidence; sample review, SQL checks, neighbour query |
 | `moqui-seed-reload` | Seed files into a test instance: backup, clean delete, ordered load, read-only SQL checks |
 
 ## Install

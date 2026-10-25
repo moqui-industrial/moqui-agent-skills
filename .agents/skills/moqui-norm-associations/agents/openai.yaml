@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui Norm Associations"
+  short_description: "Associative graph of the norms: written links and expert associations"
+  default_prompt: "Use $moqui-norm-associations to connect the loaded norms in the associative graph and verify it."
+
+policy:
+  allow_implicit_invocation: true
