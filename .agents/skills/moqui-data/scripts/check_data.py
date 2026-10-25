@@ -11,6 +11,7 @@ Checks:
   NEST   every nested element resolves to a relationship of its parent (short-alias, title+related, related)
          or to an entity that has a relationship back to the parent
   FIELD  every attribute is a field of the entity (or an in-parameter of the service)
+  LENGTH every value fits the default length of its field type (id 40, text-short 63, text-medium 255, ...)
   VALUE  *EnumId, statusId, roleTypeId values exist in seed/install data of the sources or in this file
   DOC    DataDocument: primaryEntityName exists, every fieldPath resolves through relationship names to a field,
          expression paths have a fieldNameAlias, conditions refer to fields or aliases of the document
@@ -18,6 +19,12 @@ Exit code 1 on any ERROR.
 """
 import sys, re, glob, argparse, collections
 import xml.etree.ElementTree as ET
+
+
+# lengths of the default field types of Moqui (MoquiDefaultConf.xml, most databases); a database configured with other
+# lengths can hold more, never assume it
+MAX_LENGTH = {"id": 40, "id-long": 255, "text-indicator": 1, "text-short": 63, "text-medium": 255,
+              "text-intermediate": 1023, "text-long": 4095}
 
 
 def local(t):
@@ -48,13 +55,14 @@ class Model:
                     if t in ("entity", "extend-entity") and el.get("entity-name"):
                         pkg = el.get("package") or el.get("package-name") or ""
                         full = f"{pkg}.{el.get('entity-name')}" if pkg else el.get("entity-name")
-                        e = self.ent.setdefault(full, {"fields": {"lastUpdatedStamp"}, "pk": [], "rels": []})
+                        e = self.ent.setdefault(full, {"fields": {"lastUpdatedStamp"}, "pk": [], "rels": [], "types": {}})
                         if el.get("short-alias"):
                             self.ent_alias[el.get("short-alias")] = full
                         for f in el:
                             ft = local(f.tag)
                             if ft == "field":
                                 e["fields"].add(f.get("name"))
+                                e["types"][f.get("name")] = f.get("type")
                                 if f.get("is-pk") == "true":
                                     e["pk"].append(f.get("name"))
                             elif ft == "relationship":
@@ -173,8 +181,15 @@ def main():
     for d in root.iter():
         m._seed(d)
 
+    def check_length(ent_name, k, v):
+        n = MAX_LENGTH.get(m.ent[ent_name]["types"].get(k))
+        if n and v and len(v) > n:
+            errors.append(f"LENGTH {short(ent_name)}.{k} is {len(v)} characters, its type "
+                          f"{m.ent[ent_name]['types'][k]} holds {n}: '{v[:40]}...'")
+
     def check_values(ent_name, el):
         for k, v in el.attrib.items():
+            check_length(ent_name, k, v)
             if not v or "$" in v:
                 continue
             if k.endswith("EnumId") and v not in m.enum_ids:
@@ -190,6 +205,7 @@ def main():
             if not isinstance(c.tag, str):
                 continue
             if tag in m.ent[ent_name]["fields"]:
+                check_length(ent_name, tag, c.text or "")
                 continue  # field value given as a child element (long text, CDATA)
             ce = m.child_entity(ent_name, tag)
             if not ce and m.entity(tag):
