@@ -64,7 +64,16 @@ Tools in the `moqui-compliance` component, `tools/extraction`: `vocab.py`, `chec
    (keeps the file layout; never rewrite the labels file with another indentation). Alternative names that are
    generic in that language ("zona", a label whose parentheses the check drops) make false findings in other norms:
    after adding concepts, check every norm.
-7. Record ids are at most 40 characters (`CMP_PC_` plus the key): give long listed products short readable keys.
+7. In a technical report (IEC/TR 62443-3-1) nothing is required: role `s` only where the text recommends ("shall",
+   "should", a "Recommendations and guidance" clause), else `l`; acronym lists are `l` in every norm. The
+   technologies a product can implement (authentication methods, VLAN, VPN, encryption, logging, malware and
+   intrusion detection) are features of one group (`fg-security-technology`), the security products themselves
+   (tokens, scanners, IDS, management tools) are product concepts.
+8. Role `s` only where the text sets requirements on the concept. A chapter that names the product as its subject
+   but binds authorities (CRA chapters on notified bodies, market surveillance, delegated acts, penalties) is `l`.
+   Link the actor an article binds (`importer` at the importers' obligations, `enisa` at the reporting platform,
+   `member-state`): the norm project plan (`moqui-norm-requirements`) leaves out articles that bind other actors.
+9. Record ids are at most 40 characters (`CMP_PC_` plus the key): give long listed products short readable keys.
 
 ## How the check reads
 

@@ -51,7 +51,10 @@ the reading becomes more faithful; then migrate every reference to the old id by
 
 1. Configure the norm in `tools/norm-kb/config/norms.json`: reader (`formex` or `pdf-standard`), files per language,
    `agreementType`, `date`, `licensed`, `bilingual`, `definitionsClause`, `paragraphGaps`, `boilerplate` lines
-   (page headers and footers), `indexes` (indexes printed in columns).
+   (page headers and footers), `indexes` (indexes printed in columns), `lineFixes` (regex and replacement pairs
+   applied to the page text before reading, for defects of one conversion only: link anchors "139H" after contents
+   entries and page numbers printed "1 2" in IEC/TR 62443-3-1; a rule that holds for more than one edition goes in
+   the reader, not here).
 2. Build into a scratch directory: `python3 build_agreement.py <normId> --data-dir <scratch>`. The build fails on
    duplicate ids, on a clause whose items do not rebuild its text (the error shows where the texts diverge), on an
    unresolved citation of the norm itself, on an unresolved index reference and, for Formex, on item texts outside
@@ -109,6 +112,15 @@ the reading becomes more faithful; then migrate every reference to the old id by
   between them ("2 U0" over "≤ ×" is 2/3 × U0/Ia). The legend ("where"/"dove", "X is ...") joins its formula while
   contiguous; after a list or a note its lines are paragraphs. A Greek letter does not continue a paragraph broken
   by the page.
+- A list item broken by the page or by a paragraph gap goes on in the next block when that block starts in lower
+  case aligned with the text of the item; a block back at the marker column (or further left) completes the sentence
+  that introduced the list and stays a paragraph ("sia tramite: • ...; o • ..." / "che tramite ...", IEC 62061
+  6.7.3), and so does a block after an item closed by "," ";" or "and/or" (IEC 60204-1 11.5).
+- Labels of a drawing are the blocks printed just before its caption; a bullet of the clause above the drawing is
+  text, not a label: it ends with ";" or ":", or is a sentence ending with "." longer than a label, or cites the
+  figure ("(Figure 3)"). "• Training, etc." inside the drawing of ISO 12100 Figure 2 is a label.
+- A short line under the term of a definition is an admitted term only if definition text follows it; followed by
+  "Note 1 to entry", an EXAMPLE or a source it is the definition itself (IEC 62443-3-2 3.1.11 likelihood).
 - Lists: a note between two items belongs to the item before (dash items; numbered sub-points past legends and
   notes); a note between a paragraph that introduces a list and the list belongs to that paragraph; 1) 2) are
   sibling points; a paragraph ending ":" followed by a new a) closes the open list; a point ending "," or ";" is
@@ -138,7 +150,7 @@ figure (`FIGH.4-2`), a translation slip stays, and the build report lists them.
   TFEU" to the Treaty, "Annex III to that Regulation" to the act of that kind named last; the act cited by its own
   name ("Annex III of Regulation (EU) 2023/1230" inside that Regulation) is itself. Equation, figure and table
   numbers are not references.
-- A series that names its requirements (IEC 62443: "CR 1.1", "SR 1.1 RE 2", "NDR 1.13 (1)", "SM-1") gets
+- A series that names its requirements (IEC 62443: "CR 1.1", "SR 1.1 RE 2", "NDR 1.13 (1)", "SM-1", "ZCR 3.2") gets
   `requirementSeries` in `norms.json`: identifiers indexed from clause titles and numbered enhancements, a citation
   reaches its own item, else the part of the series that defines it. Build the parts it cites first.
 - A citation of a partition of another loaded act reaches its item ("sections 1.1.9 and 1.2.1 of Annex III" of the

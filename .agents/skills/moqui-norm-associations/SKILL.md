@@ -27,6 +27,7 @@ is the value of the work; the database is where it is tested (`moqui-seed-reload
 | `CmpGaDetails` | method -> requirement | a clause gives the method for what a law or norm asks |
 | `CmpGaSameSubject` | undirected | requirements of two norms on the same precise product or function |
 | `CmpGaDerivedRequirement` | general -> specific | system to component requirement, component to device type |
+| `CmpGaMentions` | mention -> definition | an item names a notion another norm defines, without citing it |
 
 ## Tool and passes
 
@@ -52,9 +53,20 @@ python3 tools/assoc/assoc.py --compare             # against data/70_ (the verif
 5. `same-subject`: requirement items ("shall", "deve") of two norms on a precise product or function, at most four
    per norm.
 6. `derived-requirements`: identifiers and titles (IEC 62443-3-3 SR x.y -> 4-2 CR x.y -> EDR/HDR/NDR/SAR x.y).
-7. `expert`: associations read one by one, `tools/assoc/proposals/*.json` (`kind`, `from` and `to` as
+7. `design-principles` (`CmpGaDetails`): a design measure or recommendation of a standard ("shall", "should",
+   "avoid", under a clause of design measures, safeguarding or recommendations) and the requirement item of a law
+   on the same function or characteristic (ISO 12100 6.2.11.4 restart after power interruption -> Regulation
+   1.2.2 unexpected start-up). Not for products (a design clause names engines and cabins in passing) nor for hazard
+   origins and energy sources (classes of risk analysis named everywhere); at most four items on each side.
+8. `mentions` (`CmpGaMentions`, 0.4): an item that names a notion defined in another norm, without citing it ("fixed
+   guards" in the Regulation -> ISO 12100 3.27.1). Precise notions only: defined in at most two norms, at most eight
+   naming items in the mentioning norm, which does not define it itself, at most a hundred links in all.
+9. `expert`: associations read one by one, `tools/assoc/proposals/*.json` (`kind`, `from` and `to` as
    `<normId>@<itemSeqId>`, `confidence`, `evidence` in own words). Read both items before writing one; check the
    words that support it (Regulation 1.2.1 names "malicious attempts").
+
+The passes run in rounds until a round adds no edge (`== rounds: n` in the output): a pass may read the edges the
+others made, and the loop stops at the fixed point.
 
 ## Verification
 

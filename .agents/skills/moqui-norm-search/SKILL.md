@@ -24,6 +24,20 @@ moqui-compliance); the manual data service `compliance.NormSearchServices.get#No
 lists are those of the concept itself: to see what applies through a broader concept (a PLC is a control system),
 read the hook of the broader concept, whose id is in `broader[]`.
 
+## Services and tools
+
+| REST (`/rest/s1/compliance`) | Service | MCP tool (moqui-mcp) | Use |
+| --- | --- | --- | --- |
+| GET `norms` | `find#NormsForProduct` | `find_norms_for_product` | hook documents of a product or of hook ids (database only) |
+| GET `search` | `search#Norms` | `search_norms` | full text over items or hooks (OpenSearch) |
+| GET `tree` | `get#NormTree` | `get_norm_tree` | an item with ancestors and children to `depth`, or the table of contents |
+| GET `references` | `get#ItemReferences` | `get_item_references` | citations out and in, concepts with hook and role, associations, editions of an item (and its children) |
+| POST `index` | `index#NormSearch` | - | rebuild the search index |
+
+The MCP tools come from the artifact group `MCP_SERVICE_TOOLS` in `data/80_CmpNormSearch.xml` (moqui-mcp offers each
+listed service as a tool to the users authorized for it); the services and the REST path are granted to ADMIN by
+`CMP_NORM_SEARCH`. `get#ItemLinks` is the internal service both the documents and `get#ItemReferences` read.
+
 ## Procedure
 
 1. **Classify.** From a product description find its hook records: search the hooks with the words of the
@@ -42,10 +56,14 @@ read the hook of the broader concept, whose id is in `broader[]`.
 4. **Widen by the associations.** On every item: `CoversRequirement` (a standard clause gives presumption of
    conformity with an essential requirement), `Details` (the method for what the law asks), `DerivedRequirement`
    (system -> component -> device type, IEC 62443), `SameSubject`, `Cites`. Weight is confidence (1 = written).
-5. **Search what the vocabulary does not name.** Full text over the items: `norm_search.py search '<query>'` with
+5. **Read in context.** `get_norm_tree` on an item gives the clause it belongs to (ancestors) and its paragraphs,
+   points and notes (`depth` 2 or 3); `get_item_references` gives what it cites and what cites it, and the
+   associations of the items below it with `includeChildren`. A requirement is read whole: its clause, its points,
+   its notes, and the clauses it cites.
+6. **Search what the vocabulary does not name.** Full text over the items: `norm_search.py search '<query>'` with
    Lucene syntax on the fields `itemText`, `itemTitle`, `path`, `normId`, `agreementId`, `locale`,
    `concepts.key`, e.g. `itemText:"supply disconnecting" AND normId:"IEC-60204-1-2006"`.
-6. **Answer** per norm: the item (`agreementId` + `agreementItemSeqId`, number and path), the role (defines,
+7. **Answer** per norm: the item (`agreementId` + `agreementItemSeqId`, number and path), the role (defines,
    specifies, lists, excludes), and why it applies (the hook and concept, or the association with its evidence).
    Rank: legislation and its essential requirements first, then the harmonised standards that cover them, then the
    rest. Quote text of EU acts freely; for ISO, IEC, EN texts cite the clause and summarise in own words, never copy
@@ -64,8 +82,9 @@ read the hook of the broader concept, whose id is in `broader[]`.
 ## Index
 
 - A seed load does not feed the data feed: after loading 60_/70_/80_ or norm seeds, rebuild with
-  `POST /rest/s1/compliance/index` (`dataDocumentId` for one document; about 2 minutes for 15k documents). The service
-  runs in its own transaction (a REST request has a 60 s transaction; joining it rolls back the manual data).
+  `POST /rest/s1/compliance/index` (`dataDocumentId` for one document; about 2 minutes for 17k documents). It empties
+  each index first (`clear`, default true): reindexing only adds and updates, and the document of an item whose id
+  changed would stay. The service runs in its own transaction (a REST request has a 60 s transaction; joining it rolls back the manual data).
 - Check: `curl localhost:9200/_cat/indices/cmp_*` and `/<index>/_count` against the database (hook records with a
   concept, items of all editions); `_cat/aliases` shows the alias `compliance` over the five indices.
 - Semantic search (not set up): OpenSearch has the ml-commons, knn and neural-search plugins; an embedding model
@@ -74,7 +93,7 @@ read the hook of the broader concept, whose id is in `broader[]`.
   before adopting it.
 - The REST path `/compliance` is granted to the group ADMIN (`CMP_NORM_SEARCH` in 80_); grant other groups there.
 
-## Baselines (8 norms, 10 editions)
+## Baselines (10 norms, 12 editions)
 
 | Query | Expected |
 | --- | --- |
@@ -82,7 +101,9 @@ read the hook of the broader concept, whose id is in `broader[]`.
 | feature `CMP_PF_SIL_3` | 44 items, IEC-62061-2021 |
 | purpose `CmpDepEmergencyStop` | 33 items in 4 norms; Regulation Annex III 1.2.4.3 -> ISO 12100 3.40 (Details) |
 | search hooks `safety PLC` | safety logic unit, logic role, programmable controller, control system among the first five |
-| index counts | 284 categories, 243 features, 36 groups, 46 purposes, 14743 items |
+| category `CMP_PC_FIREWALL` | IEC 62443-3-2, 3-3, 4-1, 4-2, IEC/TR 62443-3-1 and the CRA |
+| `get_item_references` IEC-62443-3-2-2020-EN 4.4.4 | concepts scs and safety-instrumented-system (specifies); mentions of IEC 62061 3.2.3 |
+| index counts | 300 categories, 259 features, 37 groups, 46 purposes, 16564 items (the items of all editions in the seeds) |
 
 A changed count after a reload is explained by the seed change (verification loop of `moqui-norm-loading`) or it
 is a fault.

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui Norm Requirements"
+  short_description: "Requirements and tasks of the loaded norms for a bill of materials, with its functions"
+  default_prompt: "Use $moqui-norm-requirements to plan the norm requirements of this bill of materials and propose the missing function levels."
+
+policy:
+  allow_implicit_invocation: true
