@@ -1,4 +1,4 @@
--- Checks of a norm project written by compliance.NormProjectServices.create#NormProject. Read only.
+-- Checks of a norm project written by mantle.compliance.NormProjectServices.create#NormProject. Read only.
 -- Parameter :project = workEffortId of the project (WetProject). Rows "check: ..." must be 0.
 SELECT 'milestones' CHECK_NAME, COUNT(*) N FROM WORK_EFFORT WHERE ROOT_WORK_EFFORT_ID = ':project' AND WORK_EFFORT_TYPE_ENUM_ID = 'WetMilestone'
 UNION ALL SELECT 'tasks', COUNT(*) FROM WORK_EFFORT WHERE ROOT_WORK_EFFORT_ID = ':project' AND WORK_EFFORT_TYPE_ENUM_ID = 'WetTask'

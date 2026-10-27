@@ -9,7 +9,7 @@ The norms are Agreement items (`moqui-norm-loading`), linked to the vocabulary b
 each other by the associative graph (`moqui-norm-associations`). This skill reads all three from one entry point,
 the record a product is classified into, and answers with the items an expert would open first and why.
 
-## Documents (moqui-compliance `data/80_CmpNormSearch.xml`, index alias `compliance`)
+## Documents (mantle-compliance `data/80_CmpNormSearch.xml`, index alias `compliance`)
 
 | DataDocument | Entry point | Content |
 | --- | --- | --- |
@@ -20,7 +20,7 @@ the record a product is classified into, and answers with the items an expert wo
 | `CmpNormItem` | `agreementId`, `agreementItemSeqId` | one per item of every edition: text, title, path, norm, locale, other editions, concepts with role and hook ids, associations; a translation inherits concepts and associations of the primary edition |
 
 The relationships of the DataDocument reach the hook and its concept vertices (`cmpConcepts`, extend-entity in
-moqui-compliance); the manual data service `compliance.NormSearchServices.get#NormDocumentData` adds the rest. Item
+mantle-compliance); the manual data service `mantle.compliance.NormSearchServices.get#NormDocumentData` adds the rest. Item
 lists are those of the concept itself: to see what applies through a broader concept (a PLC is a control system),
 read the hook of the broader concept, whose id is in `broader[]`.
 

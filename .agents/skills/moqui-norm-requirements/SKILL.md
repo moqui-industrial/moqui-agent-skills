@@ -11,7 +11,7 @@ builds or sells: the bill of materials is the input, a project of requirements a
 of the project comes from the bill and from what the norms say about each of its levels; nothing is copied from a
 fixed template, because a template holds requirements a product does not have and misses the ones it has.
 
-## Model (Mantle, moqui-compliance)
+## Model (Mantle, mantle-compliance)
 
 | Record | Use |
 | --- | --- |
@@ -110,7 +110,7 @@ A wrong requirement is fixed at its cause, never by editing the plan or the proj
   role `l`), an article without the actor it binds -> the hooks files (`moqui-norm-hooks`), regenerate and reload the
   vocabulary, plan again;
 - a wrong classification -> the product's categories and features;
-- a wrong rule of the plan -> `NormProjectPlan.groovy` in moqui-compliance, with the case in its comment.
+- a wrong rule of the plan -> `NormProjectPlan.groovy` in mantle-compliance, with the case in its comment.
 
 ## Verification
 

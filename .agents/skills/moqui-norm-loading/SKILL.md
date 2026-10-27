@@ -10,9 +10,14 @@ hooks (categories, features, device purposes) come later and point at the items 
 files are the source of truth; the database is only where they are tested (see `moqui-seed-reload`). Data rules and
 the validator come from `moqui-data`; the Agreement model from `moqui-agreement`.
 
-The tools are in the `moqui-compliance` component (`tools/norm-kb`, branch `norms-agreement` of
-`moqui-industrial/moqui-compliance`). They need Python 3, `pdftotext` (poppler) and PyMuPDF (`pymupdf`, imported
-from user site-packages: do not run those scripts with `python3 -I`).
+The tools are the scripts of this skill (`scripts/`: readers in `normkb/`, `build_agreement.py`, `build_norm.py`,
+`check_words.py`, `check_formex_items.py`, `verify_norms.py`). What they read and write is in the `mantle-compliance`
+component (`moqui-industrial/mantle-compliance`): the seeds in `data/`, their curated inputs in `data/norms/` (not
+loaded by Moqui) and the intermediate files in `build/norm-kb/` (not committed); `scripts/normkb/paths.py` lists them.
+The component is found from env `MANTLE_COMPLIANCE` or from the current directory upwards (run from the Moqui root).
+The scripts of `moqui-norm-hooks` and `moqui-norm-associations` import `normkb` from here. They need Python 3,
+`pdftotext` (poppler) and PyMuPDF (`pymupdf`, imported from user site-packages: do not run those scripts with
+`python3 -I`).
 
 ## Model
 
@@ -49,7 +54,7 @@ the reading becomes more faithful; then migrate every reference to the old id by
 
 ## Workflow
 
-1. Configure the norm in `tools/norm-kb/config/norms.json`: reader (`formex` or `pdf-standard`), files per language,
+1. Configure the norm in `data/norms/norms.json`: reader (`formex` or `pdf-standard`), files per language,
    `agreementType`, `date`, `licensed`, `bilingual`, `definitionsClause`, `paragraphGaps`, `boilerplate` lines
    (page headers and footers), `indexes` (indexes printed in columns), `lineFixes` (regex and replacement pairs
    applied to the page text before reading, for defects of one conversion only: link anchors "139H" after contents
@@ -77,8 +82,8 @@ the reading becomes more faithful; then migrate every reference to the old id by
 6. Write to `data/` (`40_Norm_<normId>_<LANG>.xml`, `41_NormStubs.xml` shared by all norms, `42_NormCrossRefs_<normId>.xml`
    for references to other loaded norms, loaded after all of them), run `check_data.py` of `moqui-data` on every file
    with the component roots as sources (`--src framework --src runtime/component/mantle-udm --src
-   runtime/component/moqui-compliance`; `entities=0` in its output means wrong sources), run the unit tests in
-   `tools/norm-kb/tests`, commit. Licensed texts (ISO, IEC, EN, CEI, UL) are gitignored; EU acts are committed.
+   runtime/component/mantle-compliance`; `entities=0` in its output means wrong sources), run the unit tests in
+   `scripts/tests`, commit. Licensed texts (ISO, IEC, EN, CEI, UL) are gitignored; EU acts are committed.
 
 ## PDF readers
 
@@ -168,7 +173,8 @@ model, hook part or vocabulary change, and before every commit and every load. I
 you touched, because a change for one edition can move the items of another.
 
 ```sh
-python3 tools/verify_norms.py            # all norms; add a normId to build only that one, --db for the instance
+cd <moqui root>   # or set MANTLE_COMPLIANCE
+python3 <skills>/moqui-norm-loading/scripts/verify_norms.py   # all norms; a normId builds only that one, --db for the instance
 ```
 
 Per norm it builds into a scratch directory (build errors stop it), compares the new seeds with the seeds in `data/`

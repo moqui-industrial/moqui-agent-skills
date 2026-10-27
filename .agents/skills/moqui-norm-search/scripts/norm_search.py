@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Norm references of a classified product, from the search documents of moqui-compliance (REST /rest/s1/compliance),
+"""Norm references of a classified product, from the search documents of mantle-compliance (REST /rest/s1/compliance),
 printed compactly for reading: per hook its concepts (names, broader, related) and the norm items with role, path,
 other editions and associations; or a full-text search over the item or hook documents.
 

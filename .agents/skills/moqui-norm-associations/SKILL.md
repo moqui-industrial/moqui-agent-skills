@@ -15,7 +15,7 @@ is the value of the work; the database is where it is tested (`moqui-seed-reload
 | Record | Use |
 | --- | --- |
 | `Graph` `NG_CMP_ASSOC` | directed multigraph, weighted |
-| `GraphVertex` | one per `AgreementItem` taking part in an association, primary edition of the norm; `agreementId`, `agreementItemSeqId` (extend-entity in moqui-compliance: moqui-math stays generic); `label` = norm, item, title (text-short: at most 63 characters; never text of a licensed norm) |
+| `GraphVertex` | one per `AgreementItem` taking part in an association, primary edition of the norm; `agreementId`, `agreementItemSeqId` (extend-entity in mantle-compliance: moqui-math stays generic); `label` = norm, item, title (text-short: at most 63 characters; never text of a licensed norm) |
 | `GraphEdge` | `edgeTypeEnumId` = kind, `weight` = confidence 0-1, `isDirected` |
 | `Parameter` on the edge | `CmpAssocPass` (symbolicValue: the passes that made it), `CmpAssocEvidence` (textValue: why, in short, own words or the citation as written) |
 
@@ -31,14 +31,14 @@ is the value of the work; the database is where it is tested (`moqui-seed-reload
 
 ## Tool and passes
 
-`tools/assoc/assoc.py` in moqui-compliance reads the seeds in `data/` (40_ of the primary edition, 42_) and the
+`scripts/assoc.py` of this skill reads the seeds in `data/` of mantle-compliance (found from `MANTLE_COMPLIANCE` or the current directory, see `moqui-norm-loading`) (40_ of the primary edition, 42_) and the
 vocabulary; every pass runs over all loaded norms; an edge made by two passes is kept once with both evidences.
 
 ```sh
-python3 tools/assoc/assoc.py                       # counts and a sample of every pass
-python3 tools/assoc/assoc.py --pass details --sample 20
-python3 tools/assoc/assoc.py --write               # data/70_CmpAssociations.xml
-python3 tools/assoc/assoc.py --compare             # against data/70_ (the verification loop runs it)
+python3 scripts/assoc.py                       # counts and a sample of every pass
+python3 scripts/assoc.py --pass details --sample 20
+python3 scripts/assoc.py --write               # data/70_CmpAssociations.xml
+python3 scripts/assoc.py --compare             # against data/70_ (the verification loop runs it)
 ```
 
 1. `text`: citations as written (weight 1).
@@ -61,7 +61,7 @@ python3 tools/assoc/assoc.py --compare             # against data/70_ (the verif
 8. `mentions` (`CmpGaMentions`, 0.4): an item that names a notion defined in another norm, without citing it ("fixed
    guards" in the Regulation -> ISO 12100 3.27.1). Precise notions only: defined in at most two norms, at most eight
    naming items in the mentioning norm, which does not define it itself, at most a hundred links in all.
-9. `expert`: associations read one by one, `tools/assoc/proposals/*.json` (`kind`, `from` and `to` as
+9. `expert`: associations read one by one, `data/norms/associations/*.json` (`kind`, `from` and `to` as
    `<normId>@<itemSeqId>`, `confidence`, `evidence` in own words). Read both items before writing one; check the
    words that support it (Regulation 1.2.1 names "malicious attempts").
 

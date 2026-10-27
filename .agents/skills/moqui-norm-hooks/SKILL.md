@@ -14,12 +14,14 @@ A hook is a record a BOM or PLM instance is classified into: `ProductCategory` (
 `s` specifies (a requirement on it), `l` lists (an example, a list, a table row), `x` excludes. The norms must be
 loaded first (`moqui-norm-loading`).
 
-Tools in the `moqui-compliance` component, `tools/extraction`: `vocab.py`, `check_hooks.py`, `dump_part.py`,
-`hooks_file.py`, `tests/test_hooks.py`; the prepared query is `assets/hook-items.sql` here.
+Tools: the scripts of this skill (`scripts/`: `vocab.py`, `check_hooks.py`, `dump_part.py`, `hooks_file.py`,
+`term_pass.py`, `tests/test_hooks.py`; they import `normkb` of `moqui-norm-loading`); the prepared query is
+`assets/hook-items.sql`; the file formats are in `references/vocabulary-format.md`. The hooks files are in the
+`mantle-compliance` component, `data/norms/vocabulary/` (written `vocabulary/` below).
 
-## Data, not proposals
+## Data, not drafts
 
-- `proposals/VOCAB-BASE.json` is the base; each norm has its extension `proposals/HOOKS-<normId>.json` (`concepts`,
+- `vocabulary/VOCAB-BASE.json` is the base; each norm has its extension `vocabulary/HOOKS-<normId>.json` (`concepts`,
   `addClauses`, `addFeatureGroups`, `reviewed`, `lexiconSkip`, `normLexiconSkip`, `proceduralParts`,
   `referenceParts`, `parts`). `vocab.py` merges them (all concepts first, then all links, so one norm's file may
   link a concept defined in another) and is the only way to `data/60_CmpVocabulary.xml`.
@@ -33,7 +35,7 @@ Tools in the `moqui-compliance` component, `tools/extraction`: `vocab.py`, `chec
   `product`, not a `term`).
 - Edit hooks files with `hooks_file.py` (`add` a part file, `unreview` stale reviews, `dedupe` links given twice,
   `format`): one key and one list element per line, so a pass is a small diff. Never re-indent a whole file.
-- Names in other languages: `proposals/LABELS-<lang>.json`, per concept `[preferred label, other terms ...]`, required
+- Names in other languages: `vocabulary/LABELS-<lang>.json`, per concept `[preferred label, other terms ...]`, required
   for every concept (vocab.py fails otherwise). They name the records in that language (`LocalizedEntityField`) and the
   graph (`CmpConceptLocalLabel`, `CmpConceptLocalAltLabel`), and `check_hooks.py --lang <lang>` matches them against
   an edition in that language. Leave out terms that are generic words in that language ("presa", "arresto"); a label
@@ -60,7 +62,7 @@ Tools in the `moqui-compliance` component, `tools/extraction`: `vocab.py`, `chec
    another sense in that norm: "conduit" between zones, "guard" a security guard, "posture" of security, "catene"
    supply chains) or a review, correct roles of examples, then `add` and `dedupe`. Look at the counts per concept
    first: a concept with hundreds of TERM findings is the subject of the norm and goes at clause level instead.
-6. New concepts are named in every language at once: `hooks_file.py labels proposals/LABELS-it.json new.json`
+6. New concepts are named in every language at once: `hooks_file.py labels vocabulary/LABELS-it.json new.json`
    (keeps the file layout; never rewrite the labels file with another indentation). Alternative names that are
    generic in that language ("zona", a label whose parentheses the check drops) make false findings in other norms:
    after adding concepts, check every norm.
@@ -121,7 +123,8 @@ model, hook part or vocabulary change, and before every commit and every load. I
 you touched, because a change for one edition can move the items of another.
 
 ```sh
-python3 tools/verify_norms.py            # all norms; add a normId to build only that one, --db for the instance
+cd <moqui root>   # or set MANTLE_COMPLIANCE
+python3 <skills>/moqui-norm-loading/scripts/verify_norms.py   # all norms; a normId builds only that one, --db for the instance
 ```
 
 Per norm it builds into a scratch directory (build errors stop it), compares the new seeds with the seeds in `data/`
@@ -154,8 +157,8 @@ with the Italian names), and with `--db` the read-only SQL checks of `moqui-seed
 - From a level or a requirement-assigning hook, `assets/hook-requirements.sql` takes the second step: the
   requirements its items cite (`iac-sl-2` reaches the CRs, SRs and REs of security level 2).
 - When a reader change moves item ids, migrate the links and reviews by content with `hooks_file.py migrate
-  <alias> <old 40_ seed> <new 40_ seed> [--labels LABELS-xx.json] [--write] proposals/VOCAB-BASE.json
-  proposals/HOOKS-*.json`: the item with the same text, the item that took the text in (a legend joined to its
+  <alias> <old 40_ seed> <new 40_ seed> [--labels LABELS-xx.json] [--write] vocabulary/VOCAB-BASE.json
+  vocabulary/HOOKS-*.json`: the item with the same text, the item that took the text in (a legend joined to its
   formula), the new rows an old block was split into that name the concept (dropped when none does), else the
   parent. It also moves links of ids that now hold another text (after a merge, `D.2.p7` is another paragraph):
   a link follows its text, not its id. Read every printed move, run it once per pair of seeds (old = the seeds in
