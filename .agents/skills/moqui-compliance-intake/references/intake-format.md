@@ -30,7 +30,8 @@ One file per project, written by the agent from the bill, the drawings and the u
 | `categories`, `features` | hook ids (`ProductCategory`, `ProductFeature`) chosen with `hook_candidates.py` and checked on the norm item |
 | `functions[]` | function levels of the type: `add#FunctionProduct`; roles `CmpDepRoleInput`, `CmpDepRoleLogic`, `CmpDepRoleOutput`, `CmpDepRoleActuator`, `CmpDepRoleMember` |
 
-Installation only:
+Installation only (`"mode": "installation"`, `"rootDeviceId"`: the device group of the plant section assessed, an
+instance of the root product through its asset):
 
 ```json
   "assets":  [{"assetId": "PLT_A_K1", "productId": "FMQ_CPU1514SP", "serialNumber": "S C-X4U12345", "assetName": "K1",
@@ -44,6 +45,10 @@ Installation only:
                "members": [{"memberDeviceId": "PLT_D_S1", "purposeEnumId": "CmpDepRoleInput"},
                            {"memberDeviceId": "PLT_D_K1", "purposeEnumId": "CmpDepRoleLogic"}]}]
 ```
+
+A zone type with its SL-T is a product of the bill (`"productTypeEnumId": "CmpPtFunction", "purposeEnumId":
+"CmpDepSecurityZone", "slTarget": {"IAC": 2, "UC": 2, "SI": 3, ...}`, loaded as `CmpPfatTarget` features); the installed
+zone is a group with `"assetId"` of an asset of that product (no serial number needed for a function's asset).
 
 `deviceTypeEnumId`: the moqui-device `DeviceType` enumeration (`DtPLC`, `DtSafetyPLC`, `DtSwitch`, `DtRouter`,
 `DtFirewall`, `DtDrive`, `DtRemoteIO`, `DtIndustrialPc`, `DtEdgeGateway`, `DtSensor`, ...); groups default to

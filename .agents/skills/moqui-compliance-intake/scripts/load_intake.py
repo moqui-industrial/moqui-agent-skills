@@ -31,6 +31,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from moqui_client import Moqui, xml_attr  # noqa: E402
 
 FROM = '2026-01-01 00:00:00'
+FRS = {'IAC', 'UC', 'SI', 'DC', 'RDF', 'TRE', 'RA'}
 ROLES = {'CmpDepRoleInput', 'CmpDepRoleLogic', 'CmpDepRoleOutput', 'CmpDepRoleActuator', 'CmpDepRoleMember'}
 
 
@@ -39,6 +40,12 @@ def checks(m, d):
     prods = {p['productId']: p for p in d.get('products', [])}
     if d.get('mode') not in ('product', 'installation'):
         q.append('mode: is this a standard product (type) or the installation of one customer?')
+    for p in prods.values():
+        for fr, lvl in (p.get('slTarget') or {}).items():
+            if fr not in FRS or lvl not in (1, 2, 3, 4):
+                q.append(f"{p['productId']}: SL-T {fr}={lvl}: foundational requirement {sorted(FRS)}, level 1-4")
+        if p.get('slTarget') and p.get('purposeEnumId') not in ('CmpDepSecurityZone', 'CmpDepSecConduit'):
+            q.append(f"{p['productId']}: an SL-T belongs to a zone or conduit product (purposeEnumId CmpDepSecurityZone / CmpDepSecConduit)")
     if d.get('root') not in prods:
         q.append(f"root {d.get('root')}: the root product (machine, system under consideration) is not among the products")
     for p in prods.values():
@@ -73,9 +80,14 @@ def checks(m, d):
         for a in assets.values():
             if a.get('productId') not in prods:
                 q.append(f"asset {a['assetId']}: product {a.get('productId')} is not in the bill")
-            if not a.get('serialNumber'):
+            if not a.get('serialNumber') and prods.get(a.get('productId'), {}).get('productTypeEnumId') != 'CmpPtFunction':
                 q.append(f"asset {a['assetId']} ({a.get('assetName')}): serial number (nameplate)?")
         devs = {x['deviceId'] for x in d.get('devices', [])} | {g['deviceId'] for g in d.get('groups', [])}
+        if d.get('rootDeviceId') not in devs:
+            q.append('rootDeviceId: which device group is the installation (the plant section the assessment covers)?')
+        for g in d.get('groups', []):
+            if g.get('assetId') and g['assetId'] not in assets:
+                q.append(f"group {g['deviceId']}: asset {g['assetId']} missing")
         for x in d.get('devices', []):
             if x.get('assetId') not in assets:
                 q.append(f"device {x['deviceId']}: asset {x.get('assetId')} missing")
@@ -83,7 +95,7 @@ def checks(m, d):
             if not ph.get('firmwareVersion') and prods.get(assets.get(x.get('assetId'), {}).get('productId'), {}).get('digital'):
                 q.append(f"device {x['deviceId']}: firmware version installed (needed for the vulnerability check)?")
         for g in d.get('groups', []):
-            if not g.get('purposeEnumId'):
+            if not g.get('purposeEnumId') and g['deviceId'] != d.get('rootDeviceId'):
                 q.append(f"group {g['deviceId']} ({g.get('groupName')}): zone, conduit or which function?")
             for mb in g.get('members', []):
                 if mb['memberDeviceId'] not in devs:
@@ -95,8 +107,9 @@ def records(d):
     x = ['<entity-facade-xml type="seed">']
     prods = d.get('products', [])
     for p in prods:
-        x.append(f'<mantle.product.Product productId="{xml_attr(p["productId"])}" productTypeEnumId="PtAsset" '
-                 f'productName="{xml_attr(p.get("productName", ""))}"/>')
+        x.append(f'<mantle.product.Product productId="{xml_attr(p["productId"])}" productTypeEnumId="{xml_attr(p.get("productTypeEnumId", "PtAsset"))}" '
+                 + (f'purposeEnumId="{xml_attr(p["purposeEnumId"])}" ' if p.get('purposeEnumId') else '')
+                 + f'productName="{xml_attr(p.get("productName", ""))}"/>')
     for p in prods:
         if p.get('parentProductId'):
             x.append(f'<mantle.product.ProductAssoc productId="{xml_attr(p["parentProductId"])}" toProductId="{xml_attr(p["productId"])}" '
@@ -104,6 +117,9 @@ def records(d):
         for c in p.get('categories', []):
             x.append(f'<mantle.product.category.ProductCategoryMember productId="{xml_attr(p["productId"])}" '
                      f'productCategoryId="{xml_attr(c)}" fromDate="{FROM}"/>')
+        for fr, lvl in (p.get('slTarget') or {}).items():
+            x.append(f'<mantle.product.feature.ProductFeatureAppl productId="{xml_attr(p["productId"])}" '
+                     f'productFeatureId="CMP_PF_{fr}_SL_{lvl}" applTypeEnumId="CmpPfatTarget" fromDate="{FROM}"/>')
         for f in p.get('features', []):
             x.append(f'<mantle.product.feature.ProductFeatureAppl productId="{xml_attr(p["productId"])}" '
                      f'productFeatureId="{xml_attr(f)}" applTypeEnumId="PfatStandard" fromDate="{FROM}"/>')

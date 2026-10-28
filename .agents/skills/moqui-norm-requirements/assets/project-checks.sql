@@ -1,7 +1,8 @@
 -- Checks of a norm project written by mantle.compliance.NormProjectServices.create#NormProject. Read only.
 -- Parameter :project = workEffortId of the project (WetProject). Rows "check: ..." must be 0.
 -- A requirement has its own task (purpose WepTask) and may also be fulfilled by action tasks (CmpWepAction) that
--- fulfil several requirements: requirements are counted once, through the tasks of the project.
+-- fulfil several requirements: requirements are counted once, through the tasks of the project. In an installation a
+-- requirement belongs to a device (DEVICE_ID; several devices may share one product type).
 SELECT 'milestones' CHECK_NAME, COUNT(*) N FROM WORK_EFFORT WHERE ROOT_WORK_EFFORT_ID = ':project' AND WORK_EFFORT_TYPE_ENUM_ID = 'WetMilestone'
 UNION ALL SELECT 'tasks of requirements', COUNT(*) FROM WORK_EFFORT WHERE ROOT_WORK_EFFORT_ID = ':project' AND WORK_EFFORT_TYPE_ENUM_ID = 'WetTask'
     AND (PURPOSE_ENUM_ID IS NULL OR PURPOSE_ENUM_ID NOT IN ('CmpWepAction', 'CmpWepRetrospective'))
@@ -15,10 +16,10 @@ UNION ALL SELECT 'check: tasks without requirement (retrospective excluded)', CO
 UNION ALL SELECT 'check: requirements without their norm item', COUNT(*) FROM REQUIREMENT r LEFT JOIN AGREEMENT_ITEM i ON i.AGREEMENT_ID = r.AGREEMENT_ID
     AND i.AGREEMENT_ITEM_SEQ_ID = r.AGREEMENT_ITEM_SEQ_ID WHERE i.AGREEMENT_ID IS NULL AND r.REQUIREMENT_ID IN (SELECT f.REQUIREMENT_ID
     FROM WORK_REQUIREMENT_FULFILLMENT f JOIN WORK_EFFORT w ON w.WORK_EFFORT_ID = f.WORK_EFFORT_ID WHERE w.ROOT_WORK_EFFORT_ID = ':project')
-UNION ALL SELECT 'check: requirements twice for one product and item', COUNT(*) FROM (SELECT r.PRODUCT_ID, r.AGREEMENT_ID, r.AGREEMENT_ITEM_SEQ_ID
+UNION ALL SELECT 'check: requirements twice for one product or device and item', COUNT(*) FROM (SELECT COALESCE(r.DEVICE_ID, r.PRODUCT_ID) HOLDER, r.AGREEMENT_ID, r.AGREEMENT_ITEM_SEQ_ID
     FROM REQUIREMENT r WHERE r.STATUS_ID <> 'RqmtStRejected' AND r.REQUIREMENT_ID IN (SELECT f.REQUIREMENT_ID FROM WORK_REQUIREMENT_FULFILLMENT f
     JOIN WORK_EFFORT w ON w.WORK_EFFORT_ID = f.WORK_EFFORT_ID WHERE w.ROOT_WORK_EFFORT_ID = ':project')
-    GROUP BY r.PRODUCT_ID, r.AGREEMENT_ID, r.AGREEMENT_ITEM_SEQ_ID HAVING COUNT(*) > 1) d
+    GROUP BY COALESCE(r.DEVICE_ID, r.PRODUCT_ID), r.AGREEMENT_ID, r.AGREEMENT_ITEM_SEQ_ID HAVING COUNT(*) > 1) d
 UNION ALL SELECT 'check: open tasks of rejected requirements', COUNT(*) FROM REQUIREMENT r JOIN WORK_REQUIREMENT_FULFILLMENT f ON f.REQUIREMENT_ID = r.REQUIREMENT_ID
     JOIN WORK_EFFORT w ON w.WORK_EFFORT_ID = f.WORK_EFFORT_ID WHERE w.ROOT_WORK_EFFORT_ID = ':project' AND r.STATUS_ID = 'RqmtStRejected'
     AND w.STATUS_ID <> 'WeCancelled' AND (w.PURPOSE_ENUM_ID IS NULL OR w.PURPOSE_ENUM_ID <> 'CmpWepAction')

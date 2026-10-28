@@ -71,7 +71,7 @@ inbox and the store read only (`INBOX_DIR`, `CONTENT_DIR`) and has no network: i
 2. `scripts/hook_candidates.py bom.json --out hooks.json`: candidate hooks per article from the search index.
 3. Accept a hook only after reading the norm item it comes from (`get_norm_tree`) and checking the datasheet. Set
    `digital` (software, firmware, data or network interface: CRA `ART3.pt1`, `ART2.1`) on every product.
-4. **A concept the norms name but the vocabulary lacks** (e.g. HMI, power drive system): do not force the nearest
+4. **A concept the norms name but the vocabulary lacks**: do not force the nearest
    hook. Record it as a vocabulary gap for `moqui-norm-hooks` and ask the user whether to proceed without it.
 5. Passive material (terminals, ducts, fuses) stays in the bill unclassified; the plan reports it as unclassified,
    which is expected.
@@ -99,6 +99,7 @@ python3 -I scripts/load_intake.py intake.json --check   # the open questions; no
 python3 -I scripts/load_intake.py intake.json           # checks again, then loads
 ```
 
+For an installation give `rootDeviceId` (the device group of the plant section); the plan then starts from it.
 The checks block the load when: the case (type or installation) is not stated, a product has digital elements but no
 category, a hook id does not exist, a function has no members or a member has no role, an asset has no serial number,
 an installed digital device has no firmware version, a group member is not a device. Each failure is printed as the
@@ -120,3 +121,6 @@ upload storage, not through the conversation.
 - A fieldbus adapter in a drive's option slot was not in the bill and the EIA-485 port was not wired: the drawing
   page, not the bill, showed the real interface.
 - Searching hooks with vendor descriptions returned a forensics tool for a PLC: write the `kind` first.
+- Classifying a drive and an operator panel showed the vocabulary lacked "power drive system" and "HMI", although
+  IEC 60204-1, IEC 62061 and the IEC 62443 series name them: a vocabulary pass added them (`moqui-norm-hooks`). Search
+  with short words of the norms ("HMI", "adjustable speed power drive system").

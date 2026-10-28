@@ -36,8 +36,8 @@ of moqui-device: the same `DevicePurpose` values, on products instead of install
 
 | Service | REST (`/rest/s1/compliance`) | MCP tool | Writes |
 | --- | --- | --- | --- |
-| `plan#NormProject` (rootProductId, normIdList, actorKeyList) | GET `project` | `plan_norm_project` | no |
-| `create#NormProject` (rootProductId, projectName, requirementKeys) | POST `project` | `create_norm_project` | yes |
+| `plan#NormProject` (rootProductId or rootDeviceId, normIdList, actorKeyList) | GET `project` | `plan_norm_project` | no |
+| `create#NormProject` (rootProductId or rootDeviceId, projectName, requirementKeys) | POST `project` | `create_norm_project` | yes |
 | `add#FunctionProduct` (parentProductId, purposeEnumId, productName, memberList) | POST `project/function` | `add_function_product` | yes |
 | `satisfy#NormRequirement` (requirementId, evidenceList, note) | - | `satisfy_norm_requirement` | yes |
 | `add#NormActionTask` (workEffortId, workEffortName, requirementIdList, fulfillmentTypeEnumId, purposeEnumId, productId) | - | `add_norm_action_task` | yes |
@@ -46,7 +46,12 @@ of moqui-device: the same `DevicePurpose` values, on products instead of install
 
 ## Procedure
 
-0. **Load the bill first** with `moqui-compliance-intake` (products, hooks, function levels, for an installation the
+0. **Product type or installation.** A type (a machine model, a boiler) is planned from its root product; an installation
+   from its root device (`rootDeviceId`): every device is typed by the product of its asset and carries its hooks, the
+   device groups with a DevicePurpose are the zones, conduits and functions, and each requirement is of a device
+   (`Requirement.deviceId`, with the product of its type). An installed zone takes its SL-T from the zone product it is
+   an instance of (Device.assetId -> Asset -> function product with `CmpPfatTarget` features).
+0a. **Load the bill first** with `moqui-compliance-intake` (products, hooks, function levels, for an installation the
    assets, devices and groups); this skill starts from classified records.
 1. **Read the bill.** Root product, its components (`PatComponent` and kinds, dated), their classification. Ask
    which organisation runs the project and in which role (`actorKeyList`: `manufacturer` by default; `importer`,
