@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui Compliance Verify"
+  short_description: "Deterministic checks, verifier gates and the retrospective of a compliance project"
+  default_prompt: "Use $moqui-compliance-verify to check this project before closing requirements and publishing the report."
+
+policy:
+  allow_implicit_invocation: true

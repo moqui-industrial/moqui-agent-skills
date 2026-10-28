@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui Compliance Report"
+  short_description: "Compliance and OT cyber security reports as Moqui wiki pages (Markdown, FreeMarker)"
+  default_prompt: "Use $moqui-compliance-report to publish this risk assessment as a wiki page with a live status of the norm project."
+
+policy:
+  allow_implicit_invocation: true

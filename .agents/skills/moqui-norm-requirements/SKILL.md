@@ -24,6 +24,10 @@ fixed template, because a template holds requirements a product does not have an
 | `WorkEffort` `WetProject` / `WetMilestone` / `WetTask` | the project of the root product (`sourceReferenceId` `cmp-norm-project:<root>`), a milestone per norm, a task per requirement (`WorkEffortProduct` to its product) |
 | `WorkRequirementFulfillment` | requirement <-> task (`WrfImplements`, `WrfTests`); many to many: one test campaign can fulfil several requirements |
 | `WorkEffortAssoc` `WeatDependsOn` | the task of a clause depends on the task of the clause it cites (Annex V of the CRA on Article 28) |
+| `Requirement` status `RqmtStSatisfied` | met already when found, shown by a document of the product: its task is closed (`WeClosed`) with the evidence as `WorkEffortContent` |
+| `WorkEffort` `WetTask` purpose `CmpWepAction` | one action fulfilling several requirements (update a firmware, change a default password, verify a wiring), under the project, `WorkRequirementFulfillment` to each |
+| `WorkEffort` `WetTask` purpose `CmpWepRetrospective` | the retrospective of the project: lessons and the changes proposed to the skills |
+| `ProductFeatureAppl` type `CmpPfatTarget` | the SL-T of a zone or conduit: the SL-C features `CMP_PF_<FR>_SL_<n>` applied as a target; selects its IEC 62443-3-3 SRs and REs |
 
 The function level is the design-time counterpart of `Device.purposeEnumId` and `DeviceGroupMember.purposeEnumId`
 of moqui-device: the same `DevicePurpose` values, on products instead of installed devices.
@@ -35,11 +39,15 @@ of moqui-device: the same `DevicePurpose` values, on products instead of install
 | `plan#NormProject` (rootProductId, normIdList, actorKeyList) | GET `project` | `plan_norm_project` | no |
 | `create#NormProject` (rootProductId, projectName, requirementKeys) | POST `project` | `create_norm_project` | yes |
 | `add#FunctionProduct` (parentProductId, purposeEnumId, productName, memberList) | POST `project/function` | `add_function_product` | yes |
+| `satisfy#NormRequirement` (requirementId, evidenceList, note) | - | `satisfy_norm_requirement` | yes |
+| `add#NormActionTask` (workEffortId, workEffortName, requirementIdList, fulfillmentTypeEnumId, purposeEnumId, productId) | - | `add_norm_action_task` | yes |
 
 `get_norm_tree` and `get_item_references` (`moqui-norm-search`) read the clause a requirement points to.
 
 ## Procedure
 
+0. **Load the bill first** with `moqui-compliance-intake` (products, hooks, function levels, for an installation the
+   assets, devices and groups); this skill starts from classified records.
 1. **Read the bill.** Root product, its components (`PatComponent` and kinds, dated), their classification. Ask
    which organisation runs the project and in which role (`actorKeyList`: `manufacturer` by default; `importer`,
    `distributor`, `authorised-representative`, `system-integrator`, `asset-owner`): articles that bind other actors
@@ -75,9 +83,24 @@ of moqui-device: the same `DevicePurpose` values, on products instead of install
 4. **Review the plan with the user**: requirements per product and norm, milestones, dependencies. The user may
    accept a subset: pass their keys (`productId|agreementId|agreementItemSeqId`) as `requirementKeys`.
 5. **Create** (`create_norm_project`). Every requirement is born `RqmtStProposed`: a person approves or rejects it
-   (`RqmtStApproved`, `RqmtStRejected`); never approve one yourself.
+   (`RqmtStApproved`, `RqmtStRejected`); never approve or reject one yourself. Propose rejections in the report, with
+   the reason and the item.
+5a. **Close what the documents already prove** (`satisfy_norm_requirement`): a requirement the product meets as its
+   datasheet, certificate, EU declaration or test report shows becomes `RqmtStSatisfied`, its task closed, the document
+   attached with the page or clause that shows it. Never without a document; never on the manufacturer's marketing
+   text. Each one is checked at the verification gate (`moqui-compliance-verify`) before the report.
+5b. **Zones and conduits: set the SL-T** (IEC 62443-3-2 ZCR 5.6, decided with the asset owner) as `CmpPfatTarget`
+   features on the zone and conduit levels, then plan and create again: the SRs and REs of IEC 62443-3-3 come from its
+   Table B.1. Until then the plan reports `missingSlTarget`.
+5c. **Actions**: every concrete action the analysis finds (firmware updates from advisories, hardening of default
+   settings, wiring or document checks, certificates to request) becomes an action task (`add_norm_action_task`)
+   linked to all the requirements it fulfils: `WrfImplements` if it meets them, `WrfTests` if it verifies them. The
+   one-to-one tasks stay: traceability is per requirement, the action is how several are met.
 6. **Report**: project id, milestones with the number of tasks, requirements per product, risk-dependent ones,
    remaining gaps, the checks of `assets/project-checks.sql`.
+6a. **Retrospective** at the end of every real project: an action task with purpose `CmpWepRetrospective` holding
+   what went wrong or was slow, and the changes proposed to the skills (diff), approved by a person before they are
+   committed (`moqui-compliance-verify`, section Retrospective).
 7. **When the bill changes**, run 3 to 6 again on the same root: new requirements are added, existing ones kept,
    requirements the plan no longer gives are rejected with the reason (`[bom sync]`, and where the clause went: a
    function level takes the clauses of its machine), and a requirement rejected by the synchronisation that comes
@@ -102,6 +125,13 @@ of moqui-device: the same `DevicePurpose` values, on products instead of install
   makes it risk-dependent. The context of a product is what it contains and what contains it.
 - **Function precedence**: a clause required of a function and of the machine it belongs to stays on the function.
 - **Dependencies**: the task of a clause depends on the task of a clause it cites, on the same product or the root.
+- **Kinds are conditions, their umbrella groups are not**: a part about mobile, lifting or underground machinery
+  applies only to a product of that kind; the group gathering such characteristics does not make a food dryer
+  mobile. An item matched directly inside such a part inherits the part's condition; what the norm itself is about
+  (the SCS of IEC 62061) is never a condition, the subject rule places it.
+- **Overview clauses** introduce requirements and are not requirements themselves (IEC 62443 "Overview").
+- **SL-T selects the system requirements**: the zone's target level per foundational requirement picks the rows of
+  IEC 62443-3-3 Table B.1; a target feature is never a hook (it is what the zone must reach, not what it is).
 
 ## When the plan is wrong
 

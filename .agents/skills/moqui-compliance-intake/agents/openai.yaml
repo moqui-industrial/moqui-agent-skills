@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui Compliance Intake"
+  short_description: "Bill of materials, drawings and documents into classified Products, Assets, Devices and groups"
+  default_prompt: "Use $moqui-compliance-intake to load this bill of materials and its drawings, asking me what the norms need and the files do not show."
+
+policy:
+  allow_implicit_invocation: true

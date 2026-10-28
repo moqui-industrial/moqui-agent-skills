@@ -1,0 +1,7 @@
+interface:
+  display_name: "Moqui OT Risk Assessment"
+  short_description: "OT cyber security risk assessment by IEC 62443-3-2 ZCR 1-7, read from the norms in the database"
+  default_prompt: "Use $moqui-ot-risk-assessment to assess this system under consideration: zones, conduits, SL-T and the CRS, citing the norm items."
+
+policy:
+  allow_implicit_invocation: true
