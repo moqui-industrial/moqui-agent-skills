@@ -26,6 +26,11 @@ host, or check the CVE record with web search on `cveawg.mitre.org` and the proj
 - **project**: the structure checks of `moqui-norm-requirements` (`assets/project-checks.sql`): every task has a
   requirement, every requirement its norm item, no duplicates, no open task of a rejected requirement, every satisfied
   requirement a closed task with evidence, every action task at least one requirement.
+- **attachments & technical file completeness**: verify against the 4-pillar benchmark
+  (`moqui-compliance-intake/references/technical-file-benchmark.md`) that every attached `ProductContent`,
+  `DeviceContent` and `WorkEffortContent` record resolves to an existing, non-empty file in the content store, and that
+  standard product documentation (`ProductContent`) is cleanly separated from installation-specific records and
+  commissioned software (`DeviceContent`).
 - **evidence**: satisfied requirements whose only evidence is a web page are listed: store a copy
   (`attach_content`), pages change.
 - **firmware**: `PhysicalDevice.firmwareVersion` of the installed devices against the minimum fixed versions of the

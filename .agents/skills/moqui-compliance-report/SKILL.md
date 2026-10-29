@@ -76,6 +76,14 @@ scripts/wiki_publish.sh get     CMPRPT ProjectStatus projectId=100000      # ren
 Fill a static template with data read from the database in the same session; keep `{placeholders}` out of a
 published page (search for `{` before publishing).
 
+## Machine Technical File & Portal Integration (Festo InfoPortal Pattern)
+
+Beyond individual report pages, organize every machine's documentation and compliance deliverables into the **four-pillar machine portal structure** (`moqui-compliance-intake/references/technical-file-benchmark.md`):
+1. **Overview**: system/station functional description, technical specifications, intended use (`ANXIII.A.pth`), and SUC perimeter (`4.2.1.1`).
+2. **Elements**: navigable multi-level BOM (`System -> Station -> Sub-Module -> Component`), safety/protective function levels (`CmpPtFunction` / `DeviceGroup`), and OT security zones/conduits (`zones-conduits.html.ftl`).
+3. **Software**: PLC/robot/HMI software packages, edge/MES stacks, firmware versions, and SBOM/advisory traceability (`ProductContent` for catalog baseline software; `DeviceContent` for customer-commissioned programs).
+4. **Documentation & Compliance Reports**: original technical PDFs (system & station manuals, electrical/pneumatic circuit diagrams, network architecture diagrams, component datasheets) alongside the Markdown compliance & risk assessment reports (`risk-assessment.md`, `crs.md`, `threat-intel.md`, `norm-project-status.md.ftl`), attached to the product/device/project (`attach_content`) and published in the machine's Wiki space or standalone documentation portal.
+
 ## Report rules
 
 - Every requirement, countermeasure and decision cites its norm item (agreement id and item id); a third-party

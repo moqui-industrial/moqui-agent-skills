@@ -6,6 +6,9 @@
 <#assign efforts = ec.entity.find("mantle.work.effort.WorkEffort").condition("rootWorkEffortId", projectId).list()>
 <#assign milestones = efforts?filter(w -> w.workEffortTypeEnumId! == "WetMilestone")>
 <#assign tasks = efforts?filter(w -> w.workEffortTypeEnumId! == "WetTask")>
+<#assign milestoneAssocs = milestones?has_content?then(ec.entity.find("mantle.work.effort.WorkEffortAssoc")
+        .condition("workEffortId", "in", milestones?map(w -> w.workEffortId)?sequence)
+        .condition("workEffortAssocTypeEnumId", "WeatMilestone").conditionDate("fromDate", "thruDate", ec.user.nowTimestamp).list(), [])>
 <#assign wrfs = ec.entity.find("mantle.request.requirement.WorkRequirementFulfillment")
         .condition("workEffortId", "in", tasks?map(w -> w.workEffortId)?sequence).list()>
 <#assign reqs = ec.entity.find("mantle.request.requirement.Requirement")
@@ -34,7 +37,7 @@ A requirement is born *proposed*; a person approves or rejects it after review.
 <thead><tr><th>Milestone</th><th>Tasks</th></tr></thead>
 <tbody>
 <#list milestones?sort_by("workEffortName") as m>
-<tr><td>${m.workEffortName!m.workEffortId}</td><td>${tasks?filter(t -> t.parentWorkEffortId! == m.workEffortId)?size}</td></tr>
+<tr><td>${m.workEffortName!m.workEffortId}</td><td>${milestoneAssocs?filter(a -> a.workEffortId == m.workEffortId)?size}</td></tr>
 </#list>
 </tbody>
 </table>

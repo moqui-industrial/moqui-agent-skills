@@ -99,31 +99,34 @@ The norms name the functions; the bill shows the components; the drawings show h
 - `plan_norm_project` after loading lists the functions the norms still expect (`missingFunction` gaps): each one is a
   question for the user, never a level created without the members.
 
-## 5. Load
+## 5. Step-by-Step Verification Loop (Mandatory before loading or exporting seed data)
 
-Build the intake object (format: `references/intake-format.md`, readable in LibreChat with
-`read_file "skills/moqui-compliance-intake/references/intake-format.md"`):
-- **In a chat (LibreChat MCP)**: call the MCP tool `load_intake` on the `moqui` server (`intake=<object>`,
-  `checkOnly=true` first; do **not** run `load_intake.py` in `skills-python`). The `questions` it returns are for the
-  user, and nothing is written while there are any; once `questions` is empty and the user confirms, call `load_intake`
-  with `checkOnly=false`.
-- **From a terminal** (where Moqui is reachable):
+Never load an entire machine or generate Moqui seed data in a single unverified jump. Follow this **6-Gate Verification Loop**, presenting the result of each gate to the user and waiting for confirmation whenever a decision or missing datum arises (see `references/technical-file-benchmark.md` for the 4-pillar Festo InfoPortal benchmark structure):
 
-```sh
-python3 -I scripts/load_intake.py intake.json --check   # the open questions; nothing is written
-python3 -I scripts/load_intake.py intake.json           # checks again, then loads
-```
+1. **Gate 1 — Document & BOM Inventory Audit**:
+   - Inventory all uploaded files (`get_inbox_files`) across the four benchmark pillars (*Overview*, *Elements / Multi-Level BOM*, *Software & Digital Elements*, *Documentation & Schematics*).
+   - Reconcile the BOM against the electrical/pneumatic circuit diagrams (`pdf_pages.py`) and network topology diagrams: verify title blocks, extract exact hardware part numbers (PLCs, safety switches, drives, switches, routers, IO-Link masters, RFID heads) and flag any missing datasheets, manuals or software packages.
+2. **Gate 2 — Multi-Level Hierarchy, Safety Functions & Zones/Conduits**:
+   - Transform flat component lists into the 4-level hierarchy (`System -> Station/Assembly -> Sub-Module -> Component`).
+   - Identify every safety/protective function (`CmpPtFunction` / `DeviceGroup` with input, logic, output roles) and every IEC 62443 security zone and conduit (`CmpDepSecurityZone`, `CmpDepSecConduit`) from the wiring and network drawings, and confirm them with the user.
+3. **Gate 3 — Norm Hook Classification Verification**:
+   - For every product, function and zone, map `kind` in the norms' vocabulary (`search_norms` with `target="hooks"`), read the norm item (`get_norm_tree`) to confirm the hook's meaning, and check it against the component datasheet. Present the classification table for review before loading.
+4. **Gate 4 — Dry-Run Intake & Read-Only Plan Verification**:
+   - Build the intake object (format: `references/intake-format.md`):
+     - **In a chat (LibreChat MCP)**: call `load_intake` (`intake=<object>`, `checkOnly=true`) first. While `questions` is non-empty, nothing is written; present `questions` to the user. Once `questions` is empty and confirmed, call `load_intake` with `checkOnly=false`.
+     - **From a terminal**: `python3 -I scripts/load_intake.py intake.json --check`, then `python3 -I scripts/load_intake.py intake.json`.
+   - For an installation give `rootDeviceId` (the device group of the plant section, which must also appear in `groups[]` with all installed `devices` as its members).
+   - Immediately run `plan_norm_project` (read-only) and verify that `unclassified`, `missingFunction` and `roleWithoutFunction` gaps are resolved (except expected passive items).
+5. **Gate 5 — Attachment (`ProductContent` vs `DeviceContent`) Verification**:
+   - Decide with the user which files belong to the catalog product type (`ProductContent`: standard manuals, circuit diagrams, datasheets, baseline PLC/robot software) vs the specific physical installation (`DeviceContent`: customer-commissioned PLC/robot programs, site IP/network configs, serial-specific test protocols). See `references/technical-file-benchmark.md` section 3.
+   - Attach each file with `attach_content` and verify that every record resolves to a non-empty file in the content store.
+6. **Gate 6 — Deterministic Verification, Seed Export & Machine Technical Portal**:
+   - Run `check_project.py` / `project-checks.sql` and `verify_norms` before exporting or committing any `39_` / `40_` seed XML: verify 0 tasks without requirement, 0 requirements without norm item, 0 duplicates, 0 satisfied requirements without evidence, and 0 action tasks without requirements.
+   - For every machine or plant, generate a dedicated **Machine Technical Documentation Portal** based on the `moqui-site` template (`references/technical-file-benchmark.md`), publishing the 4-level BOM, electrical and network drawings, component datasheets, and the generated Machinery Regulation (EU 2023/1230) and OT Cybersecurity (IEC 62443 / CRA) compliance reports as interactive markdown wiki spaces.
 
-For an installation give `rootDeviceId` (the device group of the plant section, which must also appear in `groups[]`
-with all installed `devices` as its members); the plan then starts from it.
-The checks block the load when: the case (type or installation) is not stated, a product has digital elements but no
-category, a hook id does not exist, a function has no members or a member has no role, an asset has no serial number,
-an installed digital device has no firmware version, a group member is not a device. Each failure is printed as the
-question to ask. Ids: a short project prefix (`FMQ_`, `IMG_`) keeps test and customer records apart.
+## 6. Documents to request and Technical File Benchmark
 
-## 6. Documents to request
-
-Ask only for what the norms list, citing the item:
+Guide the user to structure their machine documentation using the **4-pillar benchmark** (`references/technical-file-benchmark.md`: *Overview*, *Elements*, *Software*, *Documentation & Compliance Reports*). Ask only for what the norms list, citing the item:
 - **In a chat (LibreChat MCP)**: read these anchor items directly with `get_norm_tree` (`depth=3` or `4`):
   - Machinery technical file: `EU-REG-2023-1230-IT` (or `-EN`), item `ANXIV.A`
   - CRA technical documentation: `EU-REG-2024-2847-IT` (or `-EN`), item `ANXVII`
@@ -147,3 +150,15 @@ through the shared upload storage, not through the conversation.
 - Classifying a drive and an operator panel showed the vocabulary lacked "power drive system" and "HMI", although
   IEC 60204-1, IEC 62061 and the IEC 62443 series name them: a vocabulary pass added them (`moqui-norm-hooks`). Search
   with short words of the norms ("HMI", "adjustable speed power drive system").
+- In a multi-station line with distributed PLCs and a shared robotics cell, place security zones (`CmpDepSecurityZone`)
+  and conduits directly under the root machine or plant (`CmpPatFunction` from the root product): this ensures the zone holds
+  both its 10 IEC 62443-3-2 ZCR requirements and its IEC 62443-3-3 SL-T selected system requirements directly.
+- When classifying 24V discrete sensors (proximity, optical, ultrasonic) and solenoid valves, do not assign the general
+  category `CMP_PC_ELECTRICAL_EQUIPMENT` (`electrical-equipment`) to individual field devices; reserve it for the machine/station
+  electrical assemblies. Assigning it to 50 individual sensors causes all 35 machine-level electrical equipment clauses of
+  IEC 60204-1 to duplicate across each individual sensor.
+- When attaching compliance reports and technical files, use `PcntSpecification` / `PcntDescriptionLong` for `ProductContent`,
+  `DCntSpecification` for `DeviceContent`, and `WectDesign` / `WectSupportingMedia` for `WorkEffortContent`.
+- For each completed compliance project, generate a dedicated machine technical documentation portal using the `moqui-site`
+  template, serving both as an interactive customer-facing dossier (matching the Festo InfoPortal benchmark) and as a live
+  navigation frontend for all attached technical files and compliance reports.
