@@ -38,13 +38,15 @@ function product with `ProductAssoc` `CmpPatFunctionMember` (type) or a DeviceGr
 
 ## 2. Read the files (in the sandbox, never whole into the conversation)
 
-Files of any size go to the **compliance inbox** (a folder the user fills outside the chat), not into the conversation:
-`get_inbox_files` lists it, `attach_content` (sourcePath, productId | deviceId | workEffortId) copies a file into the
-content store and records it as ProductContent, DeviceContent or WorkEffortContent. The analysis sandbox mounts the
-inbox and the store read only (`INBOX_DIR`, `CONTENT_DIR`) and has no network: its scripts read files
-(`eplan_bom.py`, `pdf_pages.py`); the scripts that talk to Moqui (`hook_candidates.py`, `load_intake.py`,
-`norm_documents.py`) run where Moqui is reachable; in a chat the agent calls the MCP tools directly (`search_norms`
-with target=hooks, `get_norm_tree`, `load_intake`).
+Files of any size (up to 50 MB each in LibreChat) can be attached directly in the chat / managed in the LibreChat **Files**
+panel (`UPLOADS_DIR`) or placed in the **compliance inbox** folder (`INBOX_DIR`) without sending raw bytes into the
+conversation: `get_inbox_files` lists both, and `attach_content` (`sourcePath`, `productId` | `deviceId` | `workEffortId`)
+copies a file into the permanent content store and records it as `ProductContent`, `DeviceContent` or `WorkEffortContent`
+(stripping any LibreChat `<uuid>__` prefix from the stored filename). The analysis sandbox mounts `/inbox`, `/uploads` and
+`/content` read-only (`INBOX_DIR`, `UPLOADS_DIR`, `CONTENT_DIR`) and has no network: its scripts (`eplan_bom.py`,
+`pdf_pages.py`) and tools (`run_python`, `run_bash`) resolve files by relative path or clean filename; the scripts that
+talk to Moqui (`hook_candidates.py`, `load_intake.py`, `norm_documents.py`) run where Moqui is reachable; in a chat the
+agent calls the MCP tools directly (`search_norms` with `target=hooks`, `get_norm_tree`, `load_intake`).
 
 - **Any large PDF**: `scripts/pdf_pages.py info|grep|text|image FILE ...` reads it page by page: grep for what matters,
   print the few pages that hold it, render a page to look at it.
@@ -69,13 +71,16 @@ with target=hooks, `get_norm_tree`, `load_intake`).
    field `kind` of `bom.json` ("programmable logic controller", "managed network switch", "frequency converter",
    "interlocking device"). Vendor names (SIMATIC, SCALANCE, ACH580) do not occur in the norms: searching with them gives
    wrong hooks.
-2. `scripts/hook_candidates.py bom.json --out hooks.json`: candidate hooks per article from the search index.
+2. Find the candidate hooks per article from the search index:
+   - **In a chat (LibreChat MCP)**: call `search_norms` (`query=<kind>`, `target="hooks"`) directly on the `moqui` MCP
+     server (do **not** run `hook_candidates.py` in `skills-python`: that sandbox has no network access to Moqui).
+   - **From a terminal** (where Moqui is reachable): `scripts/hook_candidates.py bom.json --out hooks.json`.
 3. Accept a hook only after reading the norm item it comes from (`get_norm_tree`) and checking the datasheet. Set
    `digital` (software, firmware, data or network interface: CRA `ART3.pt1`, `ART2.1`) on every product.
 4. **A concept the norms name but the vocabulary lacks**: do not force the nearest
    hook. Record it as a vocabulary gap for `moqui-norm-hooks` and ask the user whether to proceed without it.
-5. Passive material (terminals, ducts, fuses) stays in the bill unclassified; the plan reports it as unclassified,
-   which is expected.
+5. Passive material (terminals, ducts, fuses) stays in the bill unclassified (`"passive": true`); the plan reports it as
+   unclassified, which is expected.
 
 ## 4. Functions, zones and conduits
 
@@ -93,16 +98,21 @@ The norms name the functions; the bill shows the components; the drawings show h
 
 ## 5. Load
 
-Write `intake.json` (format: `references/intake-format.md`) and load it with the MCP tool `load_intake` (service
-`mantle.compliance.IntakeServices.load#Intake`, the same from a chat or a terminal): `checkOnly=true` first; the
-`questions` it returns are for the user, and nothing is written while there are any. From a terminal:
+Build the intake object (format: `references/intake-format.md`, readable in LibreChat with
+`read_file "skills/moqui-compliance-intake/references/intake-format.md"`):
+- **In a chat (LibreChat MCP)**: call the MCP tool `load_intake` on the `moqui` server (`intake=<object>`,
+  `checkOnly=true` first; do **not** run `load_intake.py` in `skills-python`). The `questions` it returns are for the
+  user, and nothing is written while there are any; once `questions` is empty and the user confirms, call `load_intake`
+  with `checkOnly=false`.
+- **From a terminal** (where Moqui is reachable):
 
 ```sh
 python3 -I scripts/load_intake.py intake.json --check   # the open questions; nothing is written
 python3 -I scripts/load_intake.py intake.json           # checks again, then loads
 ```
 
-For an installation give `rootDeviceId` (the device group of the plant section); the plan then starts from it.
+For an installation give `rootDeviceId` (the device group of the plant section, which must also appear in `groups[]`
+with all installed `devices` as its members); the plan then starts from it.
 The checks block the load when: the case (type or installation) is not stated, a product has digital elements but no
 category, a hook id does not exist, a function has no members or a member has no role, an asset has no serial number,
 an installed digital device has no firmware version, a group member is not a device. Each failure is printed as the
@@ -110,12 +120,19 @@ question to ask. Ids: a short project prefix (`FMQ_`, `IMG_`) keeps test and cus
 
 ## 6. Documents to request
 
-Ask only for what the norms list, citing the item: `scripts/norm_documents.py machinery cra cra-user iec62443`
-prints the lists (Machinery Regulation Annex IV part A, CRA Annex VII and Annex II, IEC 62443-3-2 ZCR 5.13 and 6.1)
-with their points. For each purchased digital component ask for its datasheet, EU declaration of conformity, security
+Ask only for what the norms list, citing the item:
+- **In a chat (LibreChat MCP)**: read these anchor items directly with `get_norm_tree` (`depth=3` or `4`):
+  - Machinery technical file: `EU-REG-2023-1230-IT` (or `-EN`), item `ANXIV.A`
+  - CRA technical documentation: `EU-REG-2024-2847-IT` (or `-EN`), item `ANXVII`
+  - CRA user information & instructions: `EU-REG-2024-2847-IT` (or `-EN`), item `ANXII`
+  - IEC 62443-3-2 risk assessment archive (ZCR 5.13): `IEC-62443-3-2-2020-EN`, item `4.6.14.1`
+  - IEC 62443-3-2 CRS minimum content (ZCR 6.1): `IEC-62443-3-2-2020-EN`, item `4.7.2.1`
+- **From a terminal**: `scripts/norm_documents.py machinery cra cra-user iec62443` prints the same sub-trees.
+
+For each purchased digital component ask for its datasheet, EU declaration of conformity, security
 advisories / support period (the manufacturer's due diligence, CRA `ART13.5`) and the installed firmware version.
-Files are attached to the product (`ProductContent`) or device (`DeviceContent`); large files go through the shared
-upload storage, not through the conversation.
+Files are attached to the product (`ProductContent`) or device (`DeviceContent`) with `attach_content`; large files go
+through the shared upload storage, not through the conversation.
 
 ## Lessons (from real cases; add to them after each project)
 

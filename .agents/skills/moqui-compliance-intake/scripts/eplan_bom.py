@@ -14,6 +14,7 @@ import collections
 import csv
 import io
 import json
+import os
 import re
 import sys
 
@@ -26,7 +27,31 @@ COLUMNS = {  # output field -> EPLAN property
 LANGS = ('en_US', 'en_GB', 'it_IT')
 
 
+def resolve(name):
+    if os.path.isfile(name):
+        return name
+    clean = os.path.basename(name)
+    matches = []
+    for env in ('INBOX_DIR', 'UPLOADS_DIR', 'CONTENT_DIR'):
+        base = os.environ.get(env)
+        if not base or not os.path.isdir(base):
+            continue
+        direct = os.path.join(base, name.lstrip('/'))
+        if os.path.isfile(direct):
+            return direct
+        for root, dirs, files in os.walk(base):
+            dirs[:] = [d for d in dirs if d != 'temp']
+            for fn in files:
+                if fn == clean or fn.endswith('__' + clean):
+                    p = os.path.join(root, fn)
+                    matches.append((os.path.getmtime(p), p))
+    if matches:
+        return max(matches)[1]
+    raise SystemExit(f'{name}: not found (give a path, or a name inside INBOX_DIR, UPLOADS_DIR or CONTENT_DIR)')
+
+
 def read_text(path):
+    path = resolve(path)
     raw = open(path, 'rb').read()
     for enc in ('utf-16', 'utf-8-sig', 'cp1252'):
         try:

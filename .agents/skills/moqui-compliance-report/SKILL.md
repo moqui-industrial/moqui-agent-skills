@@ -45,20 +45,23 @@ Markdown is parsed before FreeMarker runs, so:
   pages has `restrictUpdate=Y` and `WikiSpaceUser` rows with `allowUpdate=Y` only for the report authors; set
   `restrictView=Y` for classified reports (ZCR 5.13 requires a classification). With `allowAnyHtml` not `Y`, only
   `wikiType` `html` is filtered (Jsoup relaxed); `md` and `.ftl` pages are stored as written.
-- Publish with `scripts/wiki_publish.sh` (form login, session token, then the wiki screen transitions):
+- Publish **from a terminal on the host** with `scripts/wiki_publish.sh` (form login, session token, then the wiki
+  screen transitions):
 
 ```sh
 scripts/wiki_publish.sh space   CMPRPT "Compliance reports"
 scripts/wiki_publish.sh protect CMPRPT EX_JOHN_DOE                         # restrictUpdate=Y + authors (UserAccount ids)
 scripts/wiki_publish.sh page    CMPRPT RiskAssessment md filled-risk-assessment.md
-scripts/wiki_publish.sh page  CMPRPT ProjectStatus md.ftl assets/norm-project-status.md.ftl
-scripts/wiki_publish.sh get   CMPRPT ProjectStatus projectId=100000      # rendered text and template errors
+scripts/wiki_publish.sh page    CMPRPT ProjectStatus md.ftl assets/norm-project-status.md.ftl
+scripts/wiki_publish.sh get     CMPRPT ProjectStatus projectId=100000      # rendered text and template errors
 ```
 
   No screen manages `WikiSpaceUser`: `protect` loads it with Tools > Entity > Data Import, which does not check that
-  the `userId` exists. A transition answers 302 also when validation fails: always `get` the page after publishing. The services
-  themselves (`update#WikiPage`, `create#WikiSpace`) are not callable through MCP `run_service` for a normal user
-  (artifact authz); the screens are the supported path. Pages are viewed at `/apps/hm/wiki/<space>/<page>`.
+  the `userId` exists. A transition answers 302 also when validation fails: always `get` the page after publishing. The
+  services themselves (`update#WikiPage`, `create#WikiSpace`) are not callable through MCP `run_service` for a normal
+  user (artifact authz), and the `skills-python` sandbox has no network access to Moqui; in a LibreChat chat, write the
+  filled Markdown/FreeMarker pages in the workspace (`write_file`) or as an artifact so `wiki_publish.sh` can publish
+  them on the host. Pages are viewed at `/apps/hm/wiki/<space>/<page>`.
 
 ## Templates (`assets/`)
 

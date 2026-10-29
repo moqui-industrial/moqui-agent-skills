@@ -20,11 +20,24 @@ import sys
 def resolve(name):
     if os.path.isfile(name):
         return name
-    for env in ('INBOX_DIR', 'CONTENT_DIR'):
+    clean = os.path.basename(name)
+    matches = []
+    for env in ('INBOX_DIR', 'UPLOADS_DIR', 'CONTENT_DIR'):
         base = os.environ.get(env)
-        if base and os.path.isfile(os.path.join(base, name)):
-            return os.path.join(base, name)
-    sys.exit(f'{name}: not found (give a path, or a name inside INBOX_DIR or CONTENT_DIR)')
+        if not base or not os.path.isdir(base):
+            continue
+        direct = os.path.join(base, name.lstrip('/'))
+        if os.path.isfile(direct):
+            return direct
+        for root, dirs, files in os.walk(base):
+            dirs[:] = [d for d in dirs if d != 'temp']
+            for fn in files:
+                if fn == clean or fn.endswith('__' + clean):
+                    p = os.path.join(root, fn)
+                    matches.append((os.path.getmtime(p), p))
+    if matches:
+        return max(matches)[1]
+    sys.exit(f'{name}: not found (give a path, or a name inside INBOX_DIR, UPLOADS_DIR or CONTENT_DIR)')
 
 
 def run(*cmd):
@@ -57,7 +70,8 @@ def main():
     else:
         page = int(sys.argv[3])
         dpi = sys.argv[sys.argv.index('--dpi') + 1] if '--dpi' in sys.argv else '80'
-        out = os.path.join(os.environ.get('WORKSPACE_DIR', '.'), f'{os.path.splitext(os.path.basename(path))[0]}-p{page}')
+        stem = re.sub(r'^[0-9a-fA-F-]{36}__', '', os.path.splitext(os.path.basename(path))[0])
+        out = os.path.join(os.environ.get('WORKSPACE_DIR', '.'), f'{stem}-p{page}')
         run('pdftoppm', '-r', dpi, '-png', '-f', str(page), '-l', str(page), '-singlefile', path, out)
         print(out + '.png')
 

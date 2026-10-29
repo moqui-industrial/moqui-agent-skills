@@ -13,9 +13,15 @@ agent that did not write it.
 
 ## 1. Deterministic checks (always, before each gate)
 
+From a terminal on the host (where Moqui and `cveawg.mitre.org` are reachable):
+
 ```sh
 python3 -I scripts/check_project.py --project <workEffortId> [--advisories advisories.json --root <prefix>]
 ```
+
+(Do not run `check_project.py` inside the `skills-python` sandbox of LibreChat: that container has no network access to
+Moqui or to `cveawg.mitre.org`. In a chat, write `advisories.json` in the workspace and run `check_project.py` on the
+host, or check the CVE record with web search on `cveawg.mitre.org` and the project records via the `moqui` MCP tools.)
 
 - **project**: the structure checks of `moqui-norm-requirements` (`assets/project-checks.sql`): every task has a
   requirement, every requirement its norm item, no duplicates, no open task of a rejected requirement, every satisfied
