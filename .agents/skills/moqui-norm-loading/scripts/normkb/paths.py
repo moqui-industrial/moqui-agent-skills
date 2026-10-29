@@ -1,7 +1,7 @@
 """Where the norm tooling reads and writes. The scripts live in the skills of moqui-agent-skills; what they read and
 generate lives in the mantle-compliance component:
 
-    data/                     the seed data (40_, 41_, 42_, 60_, 70_ files)
+    data/                     the seed data (39_ stubs, 40_ norms, 42_ cross references, 60_, 70_ files)
     data/norms/norms.json     the norms and their sources, reader settings
     data/norms/figures/       figures written in our own words, per norm
     data/norms/tables/        transcriptions of tables printed as images (licensed norms: not committed)
@@ -47,6 +47,9 @@ def find_component():
 COMPONENT = find_component()
 FRAMEWORK = COMPONENT.parents[2]                       # component -> runtime/component -> runtime -> framework root
 DATA = COMPONENT / 'data'
+# headers of the documents the norms cite and that are not loaded: loaded before the norms that cite them (a
+# reference of a 40_ file is a foreign key to its Agreement), so a fresh database loads in the order of the prefixes
+STUBS = '39_NormStubs.xml'
 NORMS = DATA / 'norms'
 CONFIG = NORMS / 'norms.json'
 FIGURES = NORMS / 'figures'

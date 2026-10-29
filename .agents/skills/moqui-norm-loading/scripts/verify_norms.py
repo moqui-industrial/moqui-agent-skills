@@ -96,8 +96,8 @@ def main():
     check_data = skill_file('moqui-data/scripts/check_data.py')
     scratch = Path(tempfile.mkdtemp(prefix='verify-norms-'))
     data_dir = COMPONENT / 'data' if a.write else scratch
-    if not a.write and (COMPONENT / 'data' / '41_NormStubs.xml').exists():
-        shutil.copy(COMPONENT / 'data' / '41_NormStubs.xml', scratch)   # stubs are merged across norms
+    if not a.write and (COMPONENT / 'data' / paths.STUBS).exists():
+        shutil.copy(COMPONENT / 'data' / paths.STUBS, scratch)   # stubs are merged across norms
     for n in norms:
         nid = n['normId']
         row = {'norm': nid}
@@ -198,7 +198,7 @@ def main():
             failed |= n_find != 0
     # the shared seeds (types, stubs, vocabulary, associations) against the entity model, lengths included
     if check_data:
-        for name in ('10_ComplianceTypeData', '41_NormStubs', '60_CmpVocabulary', '70_CmpAssociations', '80_CmpNormSearch'):
+        for name in ('10_ComplianceTypeData', paths.STUBS[:-4], '60_CmpVocabulary', '70_CmpAssociations', '80_CmpNormSearch'):
             f = COMPONENT / 'data' / f'{name}.xml'
             if not f.exists():
                 continue

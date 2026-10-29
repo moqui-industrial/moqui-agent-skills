@@ -79,7 +79,7 @@ the reading becomes more faithful; then migrate every reference to the old id by
 4. Check the build report: `tocMissing` empty, `languageCorrected`, `duplicateCaptions`, `transcribedTables`.
 5. Rebuild the norms already loaded and compare their ids and texts with the previous build: a reader change must
    not change them silently. When it does and the new reading is right, migrate the references.
-6. Write to `data/` (`40_Norm_<normId>_<LANG>.xml`, `41_NormStubs.xml` shared by all norms, `42_NormCrossRefs_<normId>.xml`
+6. Write to `data/` (`40_Norm_<normId>_<LANG>.xml`, `39_NormStubs.xml` shared by all norms, `42_NormCrossRefs_<normId>.xml`
    for references to other loaded norms, loaded after all of them), run `check_data.py` of `moqui-data` on every file
    with the component roots as sources (`--src framework --src runtime/component/mantle-udm --src
    runtime/component/mantle-compliance`; `entities=0` in its output means wrong sources), run the unit tests in

@@ -196,7 +196,7 @@ class AgreementWriter:
 
 
 def write_stubs(path, stubs, configured):
-    """Union of the stub Agreements of all norms (file 41_NormStubs.xml); stubs of configured norms are dropped."""
+    """Union of the stub Agreements of all norms (file 39_NormStubs.xml, loaded before the norms); stubs of configured norms are dropped."""
     known = {}
     if os.path.exists(path):
         for m in re.finditer(r'agreementId="([^"]+)" agreementTypeEnumId="[^"]+" description="([^"]*)"',

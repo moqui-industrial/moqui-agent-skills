@@ -1,6 +1,6 @@
 ---
 name: moqui-compliance-intake
-description: Take in what a user uploads for a compliance project - a bill of materials (EPLAN or other CSV export), electrical and network drawings, datasheets, certificates - and turn it into Moqui records the norm requirements can be derived from - Product records classified by the vocabulary hooks (ProductCategory, ProductFeature, ProductFeatureGroup, DevicePurpose), function levels for the safety, protective, stop and emergency functions and for security zones and conduits, and, for an installed plant, the Asset (serial number), Device and PhysicalDevice (vendor, model, firmware) of every unit and DeviceGroup records for zones, conduits and functions - asking the user, as the norms require, for every fact, function grouping and document that cannot be read from the files, and stopping instead of guessing. Use this skill whenever a bill of materials, a machine, a standard product (a boiler, a machine type) or a customer's plant has to be loaded for a CRA, machinery, functional safety or IEC 62443 assessment, or documents for the technical file have to be requested.
+description: Take in what a user provides for a compliance project - a bill of materials (EPLAN or other CSV export), electrical and network drawings, datasheets, certificates - and turn it into Moqui records the norm requirements can be derived from - Product records classified by the vocabulary hooks (ProductCategory, ProductFeature, ProductFeatureGroup, DevicePurpose), function levels for safety, protective, stop and emergency functions and for security zones and conduits, and for an installed plant the Asset (serial number), Device and PhysicalDevice (vendor, model, firmware) of every unit and DeviceGroup records. Ask the user, as the norms require, for every fact, grouping and document the files do not show, and stop instead of guessing. Use it whenever a bill of materials, a machine, a standard product or a customer's plant has to be loaded for a CRA, machinery, functional safety or IEC 62443 assessment, or documents for the technical file have to be requested.
 ---
 
 # moqui-compliance-intake: from the user's files to classified records
@@ -43,7 +43,8 @@ Files of any size go to the **compliance inbox** (a folder the user fills outsid
 content store and records it as ProductContent, DeviceContent or WorkEffortContent. The analysis sandbox mounts the
 inbox and the store read only (`INBOX_DIR`, `CONTENT_DIR`) and has no network: its scripts read files
 (`eplan_bom.py`, `pdf_pages.py`); the scripts that talk to Moqui (`hook_candidates.py`, `load_intake.py`,
-`norm_documents.py`) run where Moqui is reachable, or the agent calls the MCP tools directly.
+`norm_documents.py`) run where Moqui is reachable; in a chat the agent calls the MCP tools directly (`search_norms`
+with target=hooks, `get_norm_tree`, `load_intake`).
 
 - **Any large PDF**: `scripts/pdf_pages.py info|grep|text|image FILE ...` reads it page by page: grep for what matters,
   print the few pages that hold it, render a page to look at it.
@@ -92,7 +93,9 @@ The norms name the functions; the bill shows the components; the drawings show h
 
 ## 5. Load
 
-Write `intake.json` (format: `references/intake-format.md`) and run:
+Write `intake.json` (format: `references/intake-format.md`) and load it with the MCP tool `load_intake` (service
+`mantle.compliance.IntakeServices.load#Intake`, the same from a chat or a terminal): `checkOnly=true` first; the
+`questions` it returns are for the user, and nothing is written while there are any. From a terminal:
 
 ```sh
 python3 -I scripts/load_intake.py intake.json --check   # the open questions; nothing is written

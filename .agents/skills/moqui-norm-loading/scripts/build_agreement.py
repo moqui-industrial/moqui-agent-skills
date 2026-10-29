@@ -2,7 +2,7 @@
 """Build the Agreement seed data of one norm (all its configured language editions): read the source into norm items,
 extract the canonical references, check, write the items (build/norm-kb/items/) and the seeds.
 
-    python3 build_agreement.py EU-REG-2023-1230     # data/40_Norm_<normId>_<LANG>.xml, data/41_NormStubs.xml
+    python3 build_agreement.py EU-REG-2023-1230     # data/40_Norm_<normId>_<LANG>.xml, data/39_NormStubs.xml
 """
 import argparse
 import json
@@ -139,7 +139,7 @@ def main():
         stubs.update(r['stubs'])
         report[f'seed_{lg}'] = {'file': os.path.basename(out), 'items': r['items'], 'assocs': r['assocs'],
                                 'crossRefs': r['crossRefs']}
-    report['stubs'] = write_stubs(os.path.join(args.data_dir, '41_NormStubs.xml'), stubs,
+    report['stubs'] = write_stubs(os.path.join(args.data_dir, paths.STUBS), stubs,
                                   [n['normId'] for n in cfg['norms']])
     print(json.dumps(report, indent=1))
 
