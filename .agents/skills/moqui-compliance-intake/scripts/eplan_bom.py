@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Read a bill of materials exported by EPLAN (CSV of the parts list or of the device list) into one row per article.
+"""Read a bill of materials exported by EPLAN (CSV or XML of the parts list or of the device list) into one row per article.
 
     python3 -I eplan_bom.py QE4.CSV                    # table on stdout
     python3 -I eplan_bom.py QE4.CSV --json bom.json    # also the rows as JSON for hook_candidates.py / load_intake.py
+    python3 -I eplan_bom.py Tipo9.XML --json bom.json  # the XML export, same properties
 
-The export is UTF-16 (or UTF-8) with ';' separators; the first row groups the columns (device, device/part), the
+The CSV export is UTF-16 (or UTF-8) with ';' separators; the first row groups the columns (device, device/part), the
 second holds the EPLAN property names (P_ARTICLEREF_PARTNO, P_ARTICLE_MANUFACTURER, P_FUNC_DEVICETAG_FULLNAME ...).
+The XML export (<partsList>) holds the same properties as attributes: those of the device on <device>, those of the
+article on each <part> inside it; one part is one row.
 Descriptions are multilingual ("de_DE@...;en_US@...;"): the English text is taken, else Italian, else the first.
 Rows without a part number (cable ducts placed as graphics, comments) are counted, not returned.
 """
@@ -17,6 +20,7 @@ import json
 import os
 import re
 import sys
+import xml.etree.ElementTree as ET
 
 COLUMNS = {  # output field -> EPLAN property
     'partNo': 'P_ARTICLEREF_PARTNO', 'manufacturer': 'P_ARTICLE_MANUFACTURER', 'typeNr': 'P_ARTICLE_TYPENR',
@@ -51,7 +55,6 @@ def resolve(name):
 
 
 def read_text(path):
-    path = resolve(path)
     raw = open(path, 'rb').read()
     for enc in ('utf-16', 'utf-8-sig', 'cp1252'):
         try:
@@ -72,18 +75,41 @@ def pick_language(value):
     return re.sub(r'^\{\{|\}\}$', '', first.strip()).strip()
 
 
-def read_bom(path):
+def csv_rows(path):
+    """The rows of the CSV export as dicts of EPLAN property -> value."""
     rows = list(csv.reader(io.StringIO(read_text(path)), delimiter=';'))
     header_row = next((i for i, r in enumerate(rows[:5]) if any(c.startswith('P_') for c in r)), None)
     if header_row is None:
         raise SystemExit(f'{path}: no EPLAN property header (P_...) in the first rows')
     head = rows[header_row]
-    ix = {k: head.index(v) for k, v in COLUMNS.items() if v in head}
-    if 'partNo' not in ix:
+    if COLUMNS['partNo'] not in head:
         raise SystemExit(f'{path}: column P_ARTICLEREF_PARTNO missing; export the parts list with article data')
-    get = lambda r, k: (r[ix[k]].strip() if k in ix and ix[k] < len(r) else '')
+    return [dict(zip(head, r)) for r in rows[header_row + 1:]]
+
+
+def xml_rows(path):
+    """The parts of the XML export (<partsList><device ...><part .../></device>) as dicts, device properties included."""
+    try:
+        root = ET.parse(path).getroot()
+    except ET.ParseError as e:
+        raise SystemExit(f'{path}: not well-formed XML ({e})')
+    if root.tag != 'partsList':
+        raise SystemExit(f'{path}: root element is <{root.tag}>, not the EPLAN <partsList>')
+    rows = []
+    for dev in root.iter('device'):
+        parts = dev.findall('part')
+        rows.extend({**dev.attrib, **p.attrib} for p in parts) if parts else rows.append(dict(dev.attrib))
+    return rows
+
+
+def read_bom(path):
+    path = resolve(path)
+    with open(path, 'rb') as f:
+        start = f.read(200).lstrip(b'\xef\xbb\xbf\xff\xfe\x00 \r\n\t')
+    rows = xml_rows(path) if start.startswith(b'<') else csv_rows(path)
+    get = lambda r, k: (r.get(COLUMNS[k]) or '').strip()
     articles, skipped = collections.OrderedDict(), 0
-    for r in rows[header_row + 1:]:
+    for r in rows:
         pn = get(r, 'partNo')
         if not pn:
             skipped += 1
@@ -111,10 +137,10 @@ def read_bom(path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('csv')
+    ap.add_argument('file', help='CSV or XML parts list exported by EPLAN')
     ap.add_argument('--json', help='write the articles to this JSON file')
     a = ap.parse_args()
-    arts, skipped = read_bom(a.csv)
+    arts, skipped = read_bom(a.file)
     print(f'# {len(arts)} articles, {sum(x["quantity"] for x in arts)} placements, {skipped} rows without part number')
     for x in arts:
         print(f"{x['quantity']:4} {x['manufacturer'][:6]:6} {x['partNo'][:28]:28} {x['description'][:60]:60} "

@@ -1,6 +1,6 @@
 ---
 name: moqui-compliance-intake
-description: Take in what a user provides for a compliance project - a bill of materials (EPLAN or other CSV export), electrical and network drawings, datasheets, certificates - and turn it into Moqui records the norm requirements can be derived from - Product records classified by the vocabulary hooks (ProductCategory, ProductFeature, ProductFeatureGroup, DevicePurpose), function levels for safety, protective, stop and emergency functions and for security zones and conduits, and for an installed plant the Asset (serial number), Device and PhysicalDevice (vendor, model, firmware) of every unit and DeviceGroup records. Ask the user, as the norms require, for every fact, grouping and document the files do not show, and stop instead of guessing. Use it whenever a bill of materials, a machine, a standard product or a customer's plant has to be loaded for a CRA, machinery, functional safety or IEC 62443 assessment, or documents for the technical file have to be requested.
+description: Take in what a user provides for a compliance project - a bill of materials (EPLAN CSV or XML export, or other), electrical and network drawings, datasheets, certificates - and turn it into Moqui records the norm requirements can be derived from - Product records classified by the vocabulary hooks (ProductCategory, ProductFeature, ProductFeatureGroup, DevicePurpose), function levels for safety, protective, stop and emergency functions and for security zones and conduits, and for an installed plant the Asset (serial number), Device and PhysicalDevice (vendor, model, firmware) of every unit and DeviceGroup records. Ask the user, as the norms require, for every fact, grouping and document the files do not show, and stop instead of guessing. Use it whenever a bill of materials, a machine, a standard product or a customer's plant has to be loaded for a CRA, machinery, functional safety or IEC 62443 assessment, or documents for the technical file have to be requested.
 ---
 
 # moqui-compliance-intake: from the user's files to classified records
@@ -51,8 +51,11 @@ agent calls the MCP tools directly (`search_norms` with `target=hooks`, `get_nor
 - **Any large PDF**: `scripts/pdf_pages.py info|grep|text|image FILE ...` reads it page by page: grep for what matters,
   print the few pages that hold it, render a page to look at it.
 
-- **Bill of materials**: `scripts/eplan_bom.py <file.csv> --json bom.json` (EPLAN parts list, UTF-16, multilingual
-  descriptions): one row per article with quantity and device tags. Other formats: convert to the same JSON.
+- **Bill of materials**: `scripts/eplan_bom.py <file> --json bom.json` (EPLAN parts list exported as CSV, UTF-16, or as
+  XML `<partsList>`; multilingual descriptions): one row per article with quantity and device tags. Other formats:
+  convert to the same JSON. **Confirm the bill belongs to the same project as the drawings**: compare the plant
+  designation and page names in the export (`=QE ...`) with the title block of the wiring diagram; an export of another
+  or a template project is a question for the user, not the bill of this machine.
 - **Electrical drawings** (PDF): `pdftotext -layout`, then grep for communication (Ethernet, PROFINET, Modbus,
   EIA-485, RJ45, IP addresses), safety devices (safety switch, emergency stop, STO, interlock), functions. Render the
   pages that matter (`pdftoppm -r 80 -f N -l N`) and look at them: wiring of a port or of STO is in the picture, not
